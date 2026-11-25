@@ -112,24 +112,6 @@
             font-weight: 800;
             padding: 4px 10px;
             border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: #16A34A;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulseAnim 1.2s infinite;
-        }
-
-        @keyframes pulseAnim {
-            0% { transform: scale(0.9); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.5; }
-            100% { transform: scale(0.9); opacity: 1; }
         }
 
         .sync-meta {
@@ -150,6 +132,7 @@
             font-size: 0.92rem;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
         }
 
         .action-buttons {
@@ -439,7 +422,7 @@
         <div class="staff-bar">
             <label for="staffName">اسم الموظف:</label>
             <input type="text" id="staffName" placeholder="اكتب اسمك..." oninput="saveStaffName()">
-            <span class="live-pill"><span class="pulse-dot"></span>تحديث أوتوماتيك كل 2 ثانية</span>
+            <span class="live-pill">تحديث لحظي موفر للباقة</span>
             <span class="sync-meta" id="lastSyncTime">آخر تحديث: --:--:--</span>
         </div>
 
@@ -548,9 +531,7 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allBookings = [];
-    let isFirstLoad = true;
     let isUserInteracting = false;
-    let pollTimer = null;
 
     function getStaffName() {
         const input = document.getElementById('staffName');
@@ -574,8 +555,8 @@
         const toast = document.getElementById('newOrderToast');
         const textEl = document.getElementById('newOrderText');
         textEl.textContent = latestPatientName
-            ? `وصل حجز جديد للمريض: ${latestPatientName}`
-            : 'تم استقبال حجز جديد وتم تحديث الجدول تلقائياً!';
+            ? `تم استقبال حجز جديد للمريض: ${latestPatientName} وتمت إضافته تلقائياً.`
+            : 'تم استقبال حجز جديد وتمت إضافته تلقائياً!';
         toast.style.display = 'flex';
     }
 
@@ -625,15 +606,7 @@
             return;
         }
 
-        const freshData = assignQueueNumbers(data || []);
-
-        if (!isFirstLoad && freshData.length > allBookings.length) {
-            const newestRow = freshData[0];
-            showNewOrderToast(newestRow ? newestRow.patient_name : '');
-        }
-
-        allBookings = freshData;
-        isFirstLoad = false;
+        allBookings = assignQueueNumbers(data || []);
         updateSyncClock();
         updateStats();
         renderTable();
@@ -901,28 +874,34 @@
         link.click();
     }
 
-    // اشتراك لحظي لاستقبال الطلبات والتعديلات فور حدوثها
+    // تحديث تلقائي ذكي عند وصول حجز جديد أو تعديل صف بدون استعلام كامل دوري
     supabaseClient
-        .channel('clinic_bookings_auto_sync')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_bookings' }, () => {
-            fetchBookings(true);
+        .channel('clinic_bookings_smart_sync')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'clinic_bookings' }, (payload) => {
+            if (!payload.new) return;
+            const exists = allBookings.some(b => b.id === payload.new.id);
+            if (!exists) {
+                allBookings = assignQueueNumbers([payload.new, ...allBookings]);
+                updateSyncClock();
+                updateStats();
+                showNewOrderToast(payload.new.patient_name);
+                if (!isUserInteracting) renderTable();
+            }
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'clinic_bookings' }, (payload) => {
+            if (!payload.new) return;
+            const idx = allBookings.findIndex(b => b.id === payload.new.id);
+            if (idx !== -1) {
+                allBookings[idx] = { ...allBookings[idx], ...payload.new };
+                updateSyncClock();
+                updateStats();
+                if (!isUserInteracting) renderTable();
+            }
         })
         .subscribe();
 
-    // تحديث فوري عند العودة لتبويب المتصفح
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            fetchBookings(true);
-        }
-    });
-
     getStaffName();
     fetchBookings(false);
-
-    // تحديث تلقائي أوتوماتيك كل 2 ثانية لاستقبال الطلبات
-    pollTimer = setInterval(() => {
-        fetchBookings(true);
-    }, 2000);
 </script>
 
 </body>
