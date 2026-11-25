@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة متابعة الاستقبال - عيادات مستشفى ابن سينا التخصصية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-red: #E30613;
+            --dark-red: #B8000B;
+            --primary-black: #111111;
+            --bg-light: #F4F5F7;
+            --border-color: #DCDFE4;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-black);
+        }
+
+        .dashboard-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 18px;
+            border-bottom: 2px solid #F0F0F0;
+            margin-bottom: 20px;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-box img {
+            height: 60px;
+            width: auto;
+        }
+
+        .brand-title h1 {
+            margin: 0;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary-black);
+        }
+
+        .brand-title span {
+            display: inline-block;
+            background: #FFF0F1;
+            color: var(--primary-red);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 15px;
+            margin-top: 4px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-red {
+            background: var(--primary-red);
+            color: #fff;
+        }
+
+        .btn-red:hover {
+            background: var(--dark-red);
+        }
+
+        .btn-black {
+            background: var(--primary-black);
+            color: #fff;
+        }
+
+        .btn-black:hover {
+            background: #333;
+        }
+
+        /* بطاقات الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: #FAFAFA;
+            border: 1.5px solid #EAECEF;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 700;
+        }
+
+        .stat-card .num {
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin-top: 5px;
+            color: var(--primary-black);
+        }
+
+        .stat-card.pending .num { color: #D97706; }
+        .stat-card.confirmed .num { color: #16A34A; }
+        .stat-card.done .num { color: var(--primary-red); }
+
+        /* شريط البحث والفلترة */
+        .filters-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+            background: #F9FAFB;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #EAECEF;
+        }
+
+        .filters-bar input,
+        .filters-bar select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: #fff;
+        }
+
+        .filters-bar input:focus,
+        .filters-bar select:focus {
+            border-color: var(--primary-red);
+            outline: none;
+        }
+
+        /* جدول البيانات */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #E2E5EA;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            min-width: 980px;
+        }
+
+        th {
+            background-color: var(--primary-black);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 12px 10px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 11px 10px;
+            border-bottom: 1px solid #EAECEF;
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) {
+            background-color: #FAFAFA;
+        }
+
+        tr:hover {
+            background-color: #FFF5F5;
+        }
+
+        .status-select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border: 1.5px solid #DCDFE4;
+            cursor: pointer;
+        }
+
+        .status-pending { background: #FEF3C7; color: #92400E; border-color: #F59E0B; }
+        .status-confirmed { background: #DCFCE7; color: #166534; border-color: #22C55E; }
+        .status-done { background: #E0E7FF; color: #1E40AF; border-color: #6366F1; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; border-color: #EF4444; }
+
+        .wa-btn {
+            background-color: #25D366;
+            color: #fff;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .wa-btn:hover {
+            background-color: #1EBE5D;
+        }
+
+        .del-btn {
+            background-color: #FFF0F1;
+            color: var(--primary-red);
+            border: 1px solid rgba(227, 6, 19, 0.3);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .del-btn:hover {
+            background-color: var(--primary-red);
+            color: #fff;
+        }
+
+        .footer-credit {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px dashed #E0E0E0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .footer-credit a {
+            color: var(--primary-black);
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-credit img {
+            height: 22px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="header-bar">
+        <div class="brand-box">
+            <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+            <div class="brand-title">
+                <h1>لوحة متابعة الاستقبال والحجوزات</h1>
+                <span>عيادات مستشفى ابن سينا التخصصية - العاشر من رمضان</span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-red" onclick="fetchBookings()">تحديث البيانات</button>
+            <button class="btn btn-black" onclick="exportToCSV()">تصدير Excel (CSV)</button>
+        </div>
+    </div>
+
+    <!-- الإحصائيات -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>إجمالي الحجوزات</h3>
+            <div class="num" id="statTotal">0</div>
+        </div>
+        <div class="stat-card pending">
+            <h3>قيد الانتظار</h3>
+            <div class="num" id="statPending">0</div>
+        </div>
+        <div class="stat-card confirmed">
+            <h3>تم التأكيد</h3>
+            <div class="num" id="statConfirmed">0</div>
+        </div>
+        <div class="stat-card done">
+            <h3>تم الكشف</h3>
+            <div class="num" id="statDone">0</div>
+        </div>
+    </div>
+
+    <!-- الفلاتر والبحث -->
+    <div class="filters-bar">
+        <input type="text" id="searchInput" placeholder="بحث باسم المريض أو رقم التليفون..." oninput="renderTable()">
+        
+        <select id="clinicFilter" onchange="renderTable()">
+            <option value="">كل العيادات</option>
+            <option value="عيادة الباطنة">عيادة الباطنة</option>
+            <option value="عيادة الباطنة والكلى">عيادة الباطنة والكلى</option>
+            <option value="عيادة الجهاز الهضمي والباطنة">عيادة الجهاز الهضمي والباطنة</option>
+            <option value="عيادة العظام">عيادة العظام</option>
+        </select>
+
+        <select id="dayFilter" onchange="renderTable()">
+            <option value="">كل الأيام</option>
+            <option value="السبت">السبت</option>
+            <option value="الأحد">الأحد</option>
+            <option value="الاثنين">الاثنين</option>
+            <option value="الثلاثاء">الثلاثاء</option>
+            <option value="الأربعاء">الأربعاء</option>
+            <option value="الخميس">الخميس</option>
+            <option value="الجمعة">الجمعة</option>
+        </select>
+
+        <select id="statusFilter" onchange="renderTable()">
+            <option value="">كل الحالات</option>
+            <option value="قيد الانتظار">قيد الانتظار</option>
+            <option value="تم التأكيد">تم التأكيد</option>
+            <option value="تم الكشف">تم الكشف</option>
+            <option value="ملغي">ملغي</option>
+        </select>
+    </div>
+
+    <!-- جدول الحجوزات -->
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>اسم المريض</th>
+                    <th>رقم التليفون</th>
+                    <th>السن</th>
+                    <th>العيادة</th>
+                    <th>اليوم</th>
+                    <th>الطبيب</th>
+                    <th>الموعد</th>
+                    <th>التعاقد</th>
+                    <th>ملاحظات</th>
+                    <th>حالة الحجز</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="bookingsTableBody">
+                <tr><td colspan="12" style="text-align:center; padding: 25px;">جاري تحميل بيانات الحجوزات...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-credit">
+        <a href="https://megagraphic.cloud" target="_blank">
+            <img src="100.png" alt="Mega Graphic">
+            <span>تصميم وتطوير ميجا جيرافيك | 01010255123</span>
+        </a>
+    </div>
+</div>
+
+<!-- مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    const SUPABASE_URL = 'https://xktnvqeelonlhhoemvdo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_fT5XWLhr9lsJ5v85PJSGuA_hA4eXR8b';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allBookings = [];
+
+    async function fetchBookings() {
+        const tbody = document.getElementById('bookingsTableBody');
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">جاري تحديث البيانات...</td></tr>';
+
+        const { data, error } = await supabaseClient
+            .from('clinic_bookings')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Fetch Error:', error);
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:#E30613; padding: 25px;">حدث خطأ أثناء جلب البيانات: ${error.message}</td></tr>`;
+            return;
+        }
+
+        allBookings = data || [];
+        updateStats();
+        renderTable();
+    }
+
+    function updateStats() {
+        document.getElementById('statTotal').textContent = allBookings.length;
+        document.getElementById('statPending').textContent = allBookings.filter(b => (b.status || 'قيد الانتظار') === 'قيد الانتظار').length;
+        document.getElementById('statConfirmed').textContent = allBookings.filter(b => b.status === 'تم التأكيد').length;
+        document.getElementById('statDone').textContent = allBookings.filter(b => b.status === 'تم الكشف').length;
+    }
+
+    function getStatusClass(status) {
+        if (status === 'تم التأكيد') return 'status-confirmed';
+        if (status === 'تم الكشف') return 'status-done';
+        if (status === 'ملغي') return 'status-cancelled';
+        return 'status-pending';
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('bookingsTableBody');
+        const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+        const clinicVal = document.getElementById('clinicFilter').value;
+        const dayVal = document.getElementById('dayFilter').value;
+        const statusVal = document.getElementById('statusFilter').value;
+
+        const filtered = allBookings.filter(b => {
+            const matchSearch = !searchTerm ||
+                (b.patient_name && b.patient_name.toLowerCase().includes(searchTerm)) ||
+                (b.phone && b.phone.includes(searchTerm));
+            const matchClinic = !clinicVal || b.clinic === clinicVal;
+            const matchDay = !dayVal || b.appointment_day === dayVal;
+            const currentStatus = b.status || 'قيد الانتظار';
+            const matchStatus = !statusVal || currentStatus === statusVal;
+            return matchSearch && matchClinic && matchDay && matchStatus;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">لا توجد حجوزات مطابقة للبحث الحالي</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        filtered.forEach((row, index) => {
+            const status = row.status || 'قيد الانتظار';
+            const statusClass = getStatusClass(status);
+            
+            // تجهيز رابط واتساب المريض للتأكيد المباشر
+            const cleanPhone = '2' + row.phone.replace(/\D/g, '');
+            const waText = encodeURIComponent(
+                `أهلاً أ/ ${row.patient_name}،\n` +
+                `نؤكد لحضرتك حجز الكشف في *عيادات مستشفى ابن سينا التخصصية*:\n` +
+                `• العيادة: ${row.clinic}\n` +
+                `• الطبيب: ${row.doctor_name}\n` +
+                `• اليوم: ${row.appointment_day} - الساعة ${row.appointment_time}\n` +
+                `• العنوان: العاشر من رمضان - أرض المستشفيات - أمام نادي المجاورة العاشرة.`
+            );
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td><strong>${row.patient_name}</strong></td>
+                <td dir="ltr" style="text-align:right;">${row.phone}</td>
+                <td>${row.age}</td>
+                <td>${row.clinic}</td>
+                <td>${row.appointment_day}</td>
+                <td>${row.doctor_name}</td>
+                <td><strong>${row.appointment_time}</strong></td>
+                <td>${row.insurance_type}</td>
+                <td>${row.notes || '-'}</td>
+                <td>
+                    <select class="status-select ${statusClass}" onchange="changeBookingStatus('${row.id}', this)">
+                        <option value="قيد الانتظار" ${status === 'قيد الانتظار' ? 'selected' : ''}>قيد الانتظار</option>
+                        <option value="تم التأكيد" ${status === 'تم التأكيد' ? 'selected' : ''}>تم التأكيد</option>
+                        <option value="تم الكشف" ${status === 'تم الكشف' ? 'selected' : ''}>تم الكشف</option>
+                        <option value="ملغي" ${status === 'ملغي' ? 'selected' : ''}>ملغي</option>
+                    </select>
+                </td>
+                <td style="white-space: nowrap;">
+                    <a href="https://wa.me/${cleanPhone}?text=${waText}" target="_blank" class="wa-btn">واتساب</a>
+                    <button class="del-btn" onclick="deleteBooking('${row.id}')">حذف</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function changeBookingStatus(id, selectEl) {
+        const newStatus = selectEl.value;
+        selectEl.className = 'status-select ' + getStatusClass(newStatus);
+
+        const { error } = await supabaseClient
+            .from('clinic_bookings')
+            .update({ status: newStatus })
+            .eq('id', id);
+
+        if (error) {
+            alert('تعذر تحديث حالة الحجز: ' + error.message);
+            fetchBookings();
+            return;
+        }
+
+        const item = allBookings.find(b => b.id === id);
+        if (item) item.status = newStatus;
+        updateStats();
+    }
+
+    async function deleteBooking(id) {
+        if (!confirm('هل أنت متأكد من حذف هذا الحجز نهائياً؟')) return;
+
+        const { error } = await supabaseClient
+            .from('clinic_bookings')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert('تعذر حذف الحجز: ' + error.message);
+            return;
+        }
+
+        allBookings = allBookings.filter(b => b.id !== id);
+        updateStats();
+        renderTable();
+    }
+
+    function exportToCSV() {
+        if (allBookings.length === 0) {
+            alert('لا توجد بيانات لتصديرها حالياً.');
+            return;
+        }
+
+        const headers = ['اسم المريض', 'التليفون', 'السن', 'العيادة', 'اليوم', 'الطبيب', 'الموعد', 'جهة التعاقد', 'ملاحظات', 'الحالة'];
+        const rows = allBookings.map(b => [
+            b.patient_name,
+            b.phone,
+            b.age,
+            b.clinic,
+            b.appointment_day,
+            b.doctor_name,
+            b.appointment_time,
+            b.insurance_type,
+            b.notes || '',
+            b.status || 'قيد الانتظار'
+        ]);
+
+        const csvContent = '\uFEFF' + [headers, ...rows]
+            .map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `حجوزات-ابن-سينا-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+    }
+
+    // تحميل البيانات عند فتح الصفحة
+    fetchBookings();
+</script>
+
+</body>
+</html>

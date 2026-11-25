@@ -127,17 +127,26 @@
             background-color: #FFF5F5 !important;
         }
 
-        .error-alert {
+        .alert-box {
             display: none;
-            background-color: #FFF0F1;
-            color: var(--dark-red);
-            border: 1px solid var(--primary-red);
             padding: 12px;
             border-radius: 10px;
             margin-bottom: 18px;
             font-weight: 700;
             font-size: 0.95rem;
             text-align: center;
+        }
+
+        .error-alert {
+            background-color: #FFF0F1;
+            color: var(--dark-red);
+            border: 1px solid var(--primary-red);
+        }
+
+        .success-alert {
+            background-color: #EDFDF3;
+            color: #136F3A;
+            border: 1px solid #28A745;
         }
 
         .row-split {
@@ -159,18 +168,23 @@
             font-size: 1.15rem;
             font-weight: 700;
             cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.25s ease;
+            transition: transform 0.15s ease, box-shadow 0.25s ease, opacity 0.2s ease;
             margin-top: 10px;
             box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             box-shadow: 0 6px 16px rgba(227, 6, 19, 0.4);
             transform: translateY(-1px);
         }
 
-        button:active {
+        button:active:not(:disabled) {
             transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
         }
 
         .hospital-info {
@@ -226,7 +240,8 @@
     
     <h2>استمارة تسجيل وحجز كشف</h2>
 
-    <div id="errorBox" class="error-alert"></div>
+    <div id="errorBox" class="alert-box error-alert"></div>
+    <div id="successBox" class="alert-box success-alert"></div>
     
     <form id="bookingForm" action="#" method="POST" novalidate>
         <div class="form-group">
@@ -305,7 +320,7 @@
             <textarea id="notes" name="notes" rows="2" placeholder="أي تفاصيل إضافية تود توضيحها للكول سنتر..."></textarea>
         </div>
 
-        <button type="submit">تأكيد وإرسال الحجز</button>
+        <button type="submit" id="submitBtn">تأكيد وإرسال الحجز</button>
     </form>
 
     <div class="hospital-info">
@@ -321,7 +336,15 @@
     </div>
 </div>
 
+<!-- مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+    // إعدادات Supabase لمشروع عيادات مستشفى ابن سينا
+    const SUPABASE_URL = 'https://xktnvqeelonlhhoemvdo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_fT5XWLhr9lsJ5v85PJSGuA_hA4eXR8b';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // قاعدة بيانات العيادات والأطباء والمواعيد
     const clinicsSchedule = {
         "عيادة الباطنة": {
@@ -457,10 +480,14 @@
         }
     };
 
+    const form = document.getElementById('bookingForm');
     const clinicSelect = document.getElementById('clinic');
     const daySelect = document.getElementById('day');
     const doctorSelect = document.getElementById('doctor');
     const timeSelect = document.getElementById('timeSlot');
+    const errorBox = document.getElementById('errorBox');
+    const successBox = document.getElementById('successBox');
+    const submitBtn = document.getElementById('submitBtn');
 
     function resetDayDoctorTime(dayPlaceholder = 'اختر اليوم...') {
         daySelect.selectedIndex = 0;
@@ -534,11 +561,10 @@
         }
     });
 
-    // التحقق من اكتمال جميع الخانات قبل الإرسال
-    const form = document.getElementById('bookingForm');
-    const errorBox = document.getElementById('errorBox');
+    // التحقق من اكتمال جميع الخانات وحفظ الحجز في Supabase
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-    form.addEventListener('submit', function(e) {
         let isValid = true;
         let errorMessage = '';
 
@@ -546,10 +572,12 @@
         const phone = document.getElementById('phone');
         const age = document.getElementById('age');
         const insurance = document.getElementById('insurance');
+        const notes = document.getElementById('notes');
 
         const requiredFields = [fullName, phone, age, clinicSelect, daySelect, doctorSelect, timeSelect, insurance];
         requiredFields.forEach(el => el.classList.remove('input-error'));
         errorBox.style.display = 'none';
+        successBox.style.display = 'none';
 
         if (fullName.value.trim().length < 3) {
             isValid = false;
@@ -586,11 +614,49 @@
         }
 
         if (!isValid) {
-            e.preventDefault();
             errorBox.textContent = errorMessage;
             errorBox.style.display = 'block';
             errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
         }
+
+        submitBtn.disabled = true;
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.textContent = 'جاري تسجيل الحجز...';
+
+        const payload = {
+            patient_name: fullName.value.trim(),
+            phone: phone.value.trim(),
+            age: Number(age.value.trim()),
+            clinic: clinicSelect.value,
+            appointment_day: daySelect.value,
+            doctor_name: doctorSelect.value,
+            appointment_time: timeSelect.value,
+            insurance_type: insurance.value,
+            notes: notes.value.trim() || 'لا توجد ملاحظات'
+        };
+
+        const { error } = await supabaseClient
+            .from('clinic_bookings')
+            .insert([payload]);
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+
+        if (error) {
+            console.error('Supabase Error:', error);
+            errorBox.textContent = 'تعذر حفظ الحجز في قاعدة البيانات، يرجى المحاولة مرة أخرى.';
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        successBox.textContent = 'تم تسجيل حجزك بنجاح، وسيتواصل معك فريق الاستقبال لتأكيد الموعد.';
+        successBox.style.display = 'block';
+        successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        form.reset();
+        resetDayDoctorTime('اختر العيادة أولاً...');
     });
 </script>
 
