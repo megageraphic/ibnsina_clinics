@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حجز العيادات - عيادات مستشفى ابن سينا التخصصية</title>
+    <!-- استدعاء خط Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-red: #E30613;
+            --dark-red: #B8000B;
+            --primary-black: #111111;
+            --bg-light: #F4F5F7;
+            --border-color: #DCDFE4;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-black);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 10px auto;
+            background: #ffffff;
+            padding: 30px 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+        }
+
+        .logo-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #F0F0F0;
+        }
+
+        .logo-header img {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
+
+        .badge-title {
+            display: inline-block;
+            background-color: #FFF0F1;
+            color: var(--primary-red);
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 5px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(227, 6, 19, 0.2);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-black);
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin: 15px 0 25px 0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--primary-black);
+        }
+
+        label span.req {
+            color: var(--primary-red);
+            margin-right: 3px;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            background-color: #FAFAFA;
+            color: var(--primary-black);
+            transition: all 0.25s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            background-color: #FFFFFF;
+            border-color: var(--primary-red);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.12);
+        }
+
+        select:disabled {
+            background-color: #EFEFEF;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .input-error {
+            border-color: var(--primary-red) !important;
+            background-color: #FFF5F5 !important;
+        }
+
+        .error-alert {
+            display: none;
+            background-color: #FFF0F1;
+            color: var(--dark-red);
+            border: 1px solid var(--primary-red);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .row-split {
+            display: flex;
+            gap: 15px;
+        }
+
+        .row-split .form-group {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.25s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+        }
+
+        button:hover {
+            box-shadow: 0 6px 16px rgba(227, 6, 19, 0.4);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .hospital-info {
+            margin-top: 25px;
+            padding: 12px;
+            background-color: #F9FAFB;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #444;
+            text-align: center;
+            line-height: 1.7;
+            border: 1px solid #EAECEF;
+        }
+
+        .footer-credit {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #E0E0E0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .footer-credit a {
+            color: var(--primary-black);
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-credit img {
+            height: 22px;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 480px) {
+            .row-split {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-header">
+        <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+        <span class="badge-title">نظام حجز العيادات الخارجية</span>
+    </div>
+    
+    <h2>استمارة تسجيل وحجز كشف</h2>
+
+    <div id="errorBox" class="error-alert"></div>
+    
+    <form id="bookingForm" action="#" method="POST" novalidate>
+        <div class="form-group">
+            <label for="fullName">اسم المريض بالكامل:<span class="req">*</span></label>
+            <input type="text" id="fullName" name="fullName" required placeholder="أدخل الاسم ثلاثي أو رباعي">
+        </div>
+
+        <div class="row-split">
+            <div class="form-group">
+                <label for="phone">رقم التليفون:<span class="req">*</span></label>
+                <input type="tel" id="phone" name="phone" required placeholder="01xxxxxxxxx" maxlength="11">
+            </div>
+
+            <div class="form-group">
+                <label for="age">السن:<span class="req">*</span></label>
+                <input type="number" id="age" name="age" min="1" max="120" required placeholder="مثال: 35">
+            </div>
+        </div>
+
+        <div class="row-split">
+            <div class="form-group">
+                <label for="clinic">العيادة المطلوبة:<span class="req">*</span></label>
+                <select id="clinic" name="clinic" required>
+                    <option value="" disabled selected>اختر العيادة...</option>
+                    <option value="عيادة الباطنة">عيادة الباطنة</option>
+                    <option value="عيادة الباطنة والكلى">عيادة الباطنة والكلى</option>
+                    <option value="عيادة الجهاز الهضمي والباطنة">عيادة الجهاز الهضمي والباطنة</option>
+                    <option value="عيادة العظام">عيادة العظام</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="day">اليوم:<span class="req">*</span></label>
+                <select id="day" name="day" required disabled>
+                    <option value="" disabled selected>اختر العيادة أولاً...</option>
+                    <option value="السبت">السبت</option>
+                    <option value="الأحد">الأحد</option>
+                    <option value="الاثنين">الاثنين</option>
+                    <option value="الثلاثاء">الثلاثاء</option>
+                    <option value="الأربعاء">الأربعاء</option>
+                    <option value="الخميس">الخميس</option>
+                    <option value="الجمعة">الجمعة</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row-split">
+            <div class="form-group">
+                <label for="doctor">الطبيب المتاح في هذا اليوم:<span class="req">*</span></label>
+                <select id="doctor" name="doctor" required disabled>
+                    <option value="" disabled selected>اختر اليوم أولاً...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="timeSlot">الموعد:<span class="req">*</span></label>
+                <select id="timeSlot" name="timeSlot" required disabled>
+                    <option value="" disabled selected>اختر الطبيب أولاً...</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="insurance">جهة التعاقد / التأمين:<span class="req">*</span></label>
+            <select id="insurance" name="insurance" required>
+                <option value="" disabled selected>اختر جهة التعاقد...</option>
+                <option value="أهالي (نقدي)">أهالي (كشف نقدي)</option>
+                <option value="جلوبال ميد">جلوبال ميد (Global Med)</option>
+                <option value="نيو ميد كير">نيو ميد كير (Neo Med Care)</option>
+                <option value="أليكو">أليكو (Alico)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">ملاحظات إضافية (اختياري):</label>
+            <textarea id="notes" name="notes" rows="2" placeholder="أي تفاصيل إضافية تود توضيحها للكول سنتر..."></textarea>
+        </div>
+
+        <button type="submit">تأكيد وإرسال الحجز</button>
+    </form>
+
+    <div class="hospital-info">
+        <strong>العنوان:</strong> العاشر من رمضان - أرض المستشفيات - أمام نادي المجاورة العاشرة<br>
+        <strong>للاستفسار والحجز المباشر:</strong> 01222243157 / 01222243156
+    </div>
+
+    <div class="footer-credit">
+        <a href="https://megagraphic.cloud" target="_blank">
+            <img src="100.png" alt="Mega Graphic">
+            <span>تصميم وتطوير ميجا جيرافيك | 01010255123</span>
+        </a>
+    </div>
+</div>
+
+<script>
+    // قاعدة بيانات العيادات والأطباء والمواعيد
+    const clinicsSchedule = {
+        "عيادة الباطنة": {
+            "د/ خالد السحار": {
+                "السبت": ["9:30 مساءً"],
+                "الأحد": ["9:30 مساءً"],
+                "الاثنين": ["2:30 ظهراً", "9:30 مساءً"],
+                "الثلاثاء": ["2:30 ظهراً", "9:30 مساءً"],
+                "الأربعاء": ["2:30 ظهراً", "9:30 مساءً"],
+                "الخميس": ["3:00 عصراً", "9:30 مساءً"]
+            },
+            "د/ ماريا": {
+                "السبت": ["9:30 صباحاً"],
+                "الثلاثاء": ["9:30 صباحاً"],
+                "الأربعاء": ["9:30 صباحاً"],
+                "الخميس": ["9:30 صباحاً"]
+            },
+            "د/ أمجد صبحي": {
+                "الأربعاء": ["1:30 ظهراً"],
+                "الخميس": ["1:30 ظهراً"]
+            },
+            "د/ صبحي صديق": {
+                "السبت": ["11:00 صباحاً"],
+                "الأربعاء": ["12:00 ظهراً"]
+            },
+            "د/ رضا المنسي": {
+                "الأحد": ["4:00 عصراً"],
+                "الأربعاء": ["4:00 عصراً"]
+            },
+            "د/ أحمد عبد الفتاح": {
+                "الأحد": ["7:00 مساءً"],
+                "الثلاثاء": ["7:00 مساءً"]
+            },
+            "د/ عبد النبي السيد": {
+                "الاثنين": ["9:30 صباحاً"]
+            }
+        },
+        "عيادة الباطنة والكلى": {
+            "د/ محمد سلامة": {
+                "السبت": ["2:30 مساءً"],
+                "الاثنين": ["2:30 مساءً"]
+            },
+            "د/ آيات نصر": {
+                "الاثنين": ["2:00 مساءً"],
+                "الخميس": ["4:00 مساءً"]
+            },
+            "د/ لطفي أبو العنين": {
+                "الأربعاء": ["10:00 صباحاً"]
+            },
+            "د/ محمد الهجرسي": {
+                "السبت": ["3:00 مساءً"],
+                "الأربعاء": ["9:00 مساءً"]
+            }
+        },
+        "عيادة الجهاز الهضمي والباطنة": {
+            "د/ رفقه محسن": {
+                "الأحد": ["10:00 صباحاً"],
+                "الاثنين": ["11:00 صباحاً"]
+            },
+            "د/ شريف سويلم": {
+                "السبت": ["5:00 مساءً"],
+                "الأحد": ["12:00 ظهراً", "5:00 مساءً"],
+                "الاثنين": ["5:30 مساءً"],
+                "الثلاثاء": ["1:30 ظهراً", "5:00 مساءً"],
+                "الأربعاء": ["5:00 مساءً"],
+                "الخميس": ["11:00 صباحاً", "5:00 مساءً"]
+            },
+            "د/ أحمد فؤاد": {
+                "الأحد": ["7:00 مساءً"],
+                "الثلاثاء": ["6:00 مساءً"],
+                "الخميس": ["5:30 مساءً"],
+                "الجمعة": ["1:00 ظهراً"]
+            },
+            "د/ وئام إبراهيم": {
+                "الخميس": ["10:00 صباحاً"]
+            }
+        },
+        "عيادة العظام": {
+            "د/ محمد رخا": {
+                "الأحد": ["1:00 ظهراً"]
+            },
+            "د/ كريم خطاب": {
+                "الثلاثاء": ["9:30 صباحاً"],
+                "الخميس": ["9:30 صباحاً"]
+            },
+            "د/ محمد عفيفي": {
+                "الأحد": ["3:00 عصراً"]
+            },
+            "د/ أحمد خطاب": {
+                "السبت": ["1:00 ظهراً"],
+                "الثلاثاء": ["12:00 ظهراً"],
+                "الأربعاء": ["12:00 ظهراً"]
+            },
+            "د/ عمر علي": {
+                "الاثنين": ["4:00 عصراً"]
+            },
+            "د/ عمرو الدرس": {
+                "السبت": ["9:30 مساءً"],
+                "الثلاثاء": ["8:30 مساءً"],
+                "الأربعاء": ["11:00 صباحاً"]
+            },
+            "د/ محمد فتحي درويش": {
+                "السبت": ["8:00 مساءً"],
+                "الاثنين": ["3:00 عصراً"]
+            },
+            "د/ محمود الخولي": {
+                "الأحد": ["9:30 مساءً"]
+            },
+            "د/ أحمد عبد الغني صبرة": {
+                "الاثنين": ["10:00 صباحاً"]
+            },
+            "د/ محمد عبد الغفار": {
+                "السبت": ["11:00 صباحاً", "3:00 عصراً"],
+                "الاثنين": ["11:00 صباحاً"],
+                "الثلاثاء": ["3:00 عصراً"],
+                "الأربعاء": ["3:00 عصراً"],
+                "الخميس": ["11:00 صباحاً", "3:00 عصراً"],
+                "الجمعة": ["1:30 ظهراً"]
+            },
+            "د/ محمد رأفت": {
+                "الأربعاء": ["6:00 مساءً"],
+                "الخميس": ["6:00 مساءً"]
+            },
+            "د/ أحمد عبد السلام": {
+                "الأحد": ["5:00 مساءً"],
+                "الأربعاء": ["9:00 مساءً"]
+            },
+            "د/ ياسين الغول": {
+                "الأحد": ["9:30 صباحاً"],
+                "الاثنين": ["8:00 مساءً"],
+                "الخميس": ["8:00 مساءً"]
+            }
+        }
+    };
+
+    const clinicSelect = document.getElementById('clinic');
+    const daySelect = document.getElementById('day');
+    const doctorSelect = document.getElementById('doctor');
+    const timeSelect = document.getElementById('timeSlot');
+
+    function resetDayDoctorTime(dayPlaceholder = 'اختر اليوم...') {
+        daySelect.selectedIndex = 0;
+        daySelect.options[0].textContent = dayPlaceholder;
+        doctorSelect.innerHTML = '<option value="" disabled selected>اختر اليوم أولاً...</option>';
+        timeSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب أولاً...</option>';
+        doctorSelect.disabled = true;
+        timeSelect.disabled = true;
+    }
+
+    // عند اختيار العيادة -> تفعيل اختيار اليوم
+    clinicSelect.addEventListener('change', function() {
+        if (this.value) {
+            daySelect.disabled = false;
+            resetDayDoctorTime('اختر اليوم...');
+        }
+    });
+
+    // عند اختيار اليوم -> عرض كل أطباء العيادة المتاحين في هذا اليوم
+    daySelect.addEventListener('change', function() {
+        const selectedClinic = clinicSelect.value;
+        const selectedDay = this.value;
+
+        doctorSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب...</option>';
+        timeSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب أولاً...</option>';
+        timeSelect.disabled = true;
+
+        if (!selectedClinic || !selectedDay || !clinicsSchedule[selectedClinic]) {
+            doctorSelect.disabled = true;
+            return;
+        }
+
+        const doctorsInClinic = clinicsSchedule[selectedClinic];
+        const availableDoctors = Object.keys(doctorsInClinic).filter(docName => {
+            return Array.isArray(doctorsInClinic[docName][selectedDay]) && doctorsInClinic[docName][selectedDay].length > 0;
+        });
+
+        if (availableDoctors.length > 0) {
+            doctorSelect.disabled = false;
+            availableDoctors.forEach(doc => {
+                const opt = document.createElement('option');
+                opt.value = doc;
+                opt.textContent = doc;
+                doctorSelect.appendChild(opt);
+            });
+        } else {
+            doctorSelect.disabled = true;
+            doctorSelect.innerHTML = '<option value="" disabled selected>لا توجد مواعيد متاحة في هذا اليوم</option>';
+        }
+    });
+
+    // عند اختيار الطبيب -> عرض مواعيده في اليوم المحدد
+    doctorSelect.addEventListener('change', function() {
+        const selectedClinic = clinicSelect.value;
+        const selectedDay = daySelect.value;
+        const selectedDoctor = this.value;
+
+        timeSelect.innerHTML = '<option value="" disabled selected>اختر الموعد...</option>';
+
+        if (selectedClinic && selectedDay && selectedDoctor && clinicsSchedule[selectedClinic][selectedDoctor]?.[selectedDay]) {
+            const times = clinicsSchedule[selectedClinic][selectedDoctor][selectedDay];
+            timeSelect.disabled = false;
+            times.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.textContent = t;
+                timeSelect.appendChild(opt);
+            });
+        } else {
+            timeSelect.disabled = true;
+        }
+    });
+
+    // التحقق من اكتمال جميع الخانات قبل الإرسال
+    const form = document.getElementById('bookingForm');
+    const errorBox = document.getElementById('errorBox');
+
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        let errorMessage = '';
+
+        const fullName = document.getElementById('fullName');
+        const phone = document.getElementById('phone');
+        const age = document.getElementById('age');
+        const insurance = document.getElementById('insurance');
+
+        const requiredFields = [fullName, phone, age, clinicSelect, daySelect, doctorSelect, timeSelect, insurance];
+        requiredFields.forEach(el => el.classList.remove('input-error'));
+        errorBox.style.display = 'none';
+
+        if (fullName.value.trim().length < 3) {
+            isValid = false;
+            fullName.classList.add('input-error');
+            errorMessage = 'يرجى إدخال اسم المريض بالكامل بشكل صحيح.';
+        } else if (!/^01[0125][0-9]{8}$/.test(phone.value.trim())) {
+            isValid = false;
+            phone.classList.add('input-error');
+            errorMessage = 'يرجى إدخال رقم موبايل صحيح مكون من 11 رقم (يبدأ بـ 01).';
+        } else if (age.value.trim() === '' || Number(age.value) < 1 || Number(age.value) > 120) {
+            isValid = false;
+            age.classList.add('input-error');
+            errorMessage = 'يرجى إدخال السن بشكل صحيح.';
+        } else if (clinicSelect.value === '') {
+            isValid = false;
+            clinicSelect.classList.add('input-error');
+            errorMessage = 'يرجى اختيار العيادة المطلوبة.';
+        } else if (daySelect.value === '') {
+            isValid = false;
+            daySelect.classList.add('input-error');
+            errorMessage = 'يرجى اختيار اليوم المناسب.';
+        } else if (doctorSelect.value === '') {
+            isValid = false;
+            doctorSelect.classList.add('input-error');
+            errorMessage = 'يرجى اختيار الطبيب المتاح في هذا اليوم.';
+        } else if (timeSelect.value === '') {
+            isValid = false;
+            timeSelect.classList.add('input-error');
+            errorMessage = 'يرجى اختيار موعد الكشف.';
+        } else if (insurance.value === '') {
+            isValid = false;
+            insurance.classList.add('input-error');
+            errorMessage = 'يرجى اختيار جهة التعاقد أو التأمين.';
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            errorBox.textContent = errorMessage;
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+</script>
+
+</body>
+</html>
