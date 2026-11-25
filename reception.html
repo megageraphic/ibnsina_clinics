@@ -30,7 +30,7 @@
         }
 
         .dashboard-container {
-            max-width: 1320px;
+            max-width: 1380px;
             margin: 0 auto;
             background: #ffffff;
             padding: 25px;
@@ -78,6 +78,40 @@
             padding: 2px 12px;
             border-radius: 15px;
             margin-top: 4px;
+        }
+
+        .staff-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: #F9FAFB;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #DCDFE4;
+        }
+
+        .staff-bar label {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .staff-bar input {
+            padding: 6px 10px;
+            border: 1.5px solid #DCDFE4;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            width: 170px;
+        }
+
+        .live-pill {
+            background: #DCFCE7;
+            color: #166534;
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
         }
 
         .action-buttons {
@@ -152,7 +186,7 @@
 
         .filters-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
             background: #F9FAFB;
@@ -186,8 +220,8 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.92rem;
-            min-width: 1020px;
+            font-size: 0.9rem;
+            min-width: 1120px;
         }
 
         th {
@@ -213,6 +247,39 @@
             background-color: #FFF5F5;
         }
 
+        tr.locked-row {
+            background-color: #FFFBEB !important;
+        }
+
+        .lock-tag {
+            display: inline-block;
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #F59E0B;
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+
+        .lock-btn {
+            background: #F3F4F6;
+            color: #111;
+            border: 1px solid #CBD5E1;
+            padding: 5px 9px;
+            border-radius: 7px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .lock-btn.active {
+            background: #F59E0B;
+            color: #fff;
+            border-color: #D97706;
+        }
+
         .action-cell {
             display: inline-flex;
             align-items: center;
@@ -232,8 +299,8 @@
         }
 
         .queue-input {
-            width: 60px;
-            padding: 5px 7px;
+            width: 58px;
+            padding: 5px 6px;
             border: 1.5px solid #DCDFE4;
             border-radius: 7px;
             font-weight: 800;
@@ -277,6 +344,12 @@
             background-color: #1EBE5D;
         }
 
+        .audit-text {
+            font-size: 0.8rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
         .footer-credit {
             text-align: center;
             margin-top: 25px;
@@ -311,6 +384,12 @@
                 <h1>لوحة متابعة الاستقبال والحجوزات</h1>
                 <span>عيادات مستشفى ابن سينا التخصصية - العاشر من رمضان</span>
             </div>
+        </div>
+
+        <div class="staff-bar">
+            <label for="staffName">اسم الموظف:</label>
+            <input type="text" id="staffName" placeholder="اكتب اسمك..." oninput="saveStaffName()">
+            <span class="live-pill">تحديث لحظي نشط</span>
         </div>
 
         <div class="action-buttons">
@@ -385,8 +464,8 @@
                     <th>الطبيب</th>
                     <th>الموعد</th>
                     <th>التعاقد</th>
-                    <th>ملاحظات</th>
                     <th>حالة الحجز</th>
+                    <th>آخر تعديل</th>
                     <th>رقم الكشف والواتساب</th>
                 </tr>
             </thead>
@@ -414,6 +493,20 @@
 
     let allBookings = [];
 
+    function getStaffName() {
+        const input = document.getElementById('staffName');
+        const saved = localStorage.getItem('ibn_sina_staff_name') || '';
+        if (!input.value && saved) {
+            input.value = saved;
+        }
+        return input.value.trim() || 'موظف الاستقبال';
+    }
+
+    function saveStaffName() {
+        const val = document.getElementById('staffName').value.trim();
+        localStorage.setItem('ibn_sina_staff_name', val);
+    }
+
     function assignQueueNumbers(records) {
         const chronological = [...records].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         const counters = {};
@@ -429,9 +522,11 @@
         return records;
     }
 
-    async function fetchBookings() {
+    async function fetchBookings(silent = false) {
         const tbody = document.getElementById('bookingsTableBody');
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">جاري تحديث البيانات...</td></tr>';
+        if (!silent) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">جاري تحديث البيانات...</td></tr>';
+        }
 
         const { data, error } = await supabaseClient
             .from('clinic_bookings')
@@ -440,7 +535,9 @@
 
         if (error) {
             console.error('Fetch Error:', error);
-            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:#E30613; padding: 25px;">حدث خطأ أثناء جلب البيانات: ${error.message}</td></tr>`;
+            if (!silent) {
+                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:#E30613; padding: 25px;">حدث خطأ أثناء جلب البيانات: ${error.message}</td></tr>`;
+            }
             return;
         }
 
@@ -469,6 +566,7 @@
         const clinicVal = document.getElementById('clinicFilter').value;
         const dayVal = document.getElementById('dayFilter').value;
         const statusVal = document.getElementById('statusFilter').value;
+        const currentStaff = getStaffName();
 
         const filtered = allBookings.filter(b => {
             const qNumStr = String(b.queue_number || '');
@@ -493,6 +591,8 @@
             const status = row.status || 'قيد الانتظار';
             const statusClass = getStatusClass(status);
             const queueNum = row.queue_number ?? '-';
+            const isLocked = Boolean(row.locked_by);
+            const isLockedByMe = row.locked_by === currentStaff;
 
             const cleanPhone = '2' + row.phone.replace(/\D/g, '');
             const waText = encodeURIComponent(
@@ -505,10 +605,19 @@
                 `• العنوان: العاشر من رمضان - أرض المستشفيات - أمام نادي المجاورة العاشرة.`
             );
 
+            const auditInfo = row.updated_by
+                ? `<strong>${row.updated_by}</strong><br><span>${row.updated_at ? new Date(row.updated_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : ''}</span>`
+                : '<span style="color:#999;">لم يُعدّل بعد</span>';
+
             const tr = document.createElement('tr');
+            if (isLocked) tr.classList.add('locked-row');
+
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td><strong>${row.patient_name}</strong></td>
+                <td>
+                    <strong>${row.patient_name}</strong>
+                    ${isLocked ? `<br><span class="lock-tag">قيد المتابعة: ${row.locked_by}</span>` : ''}
+                </td>
                 <td dir="ltr" style="text-align:right;">${row.phone}</td>
                 <td>${row.age}</td>
                 <td>${row.clinic}</td>
@@ -516,7 +625,6 @@
                 <td>${row.doctor_name}</td>
                 <td><strong>${row.appointment_time}</strong></td>
                 <td>${row.insurance_type}</td>
-                <td>${row.notes || '-'}</td>
                 <td>
                     <select class="status-select ${statusClass}" onchange="changeBookingStatus('${row.id}', this)">
                         <option value="قيد الانتظار" ${status === 'قيد الانتظار' ? 'selected' : ''}>قيد الانتظار</option>
@@ -525,11 +633,13 @@
                         <option value="ملغي" ${status === 'ملغي' ? 'selected' : ''}>ملغي</option>
                     </select>
                 </td>
+                <td class="audit-text">${auditInfo}</td>
                 <td>
                     <div class="action-cell">
                         <span class="queue-badge">#${queueNum}</span>
                         <input type="number" min="1" class="queue-input" value="${row.queue_number || ''}" onchange="updateQueueNumber('${row.id}', this.value)" title="تعديل رقم الحجز في الكشف">
-                        <a href="https://wa.me/${cleanPhone}?text=${waText}" target="_blank" class="wa-btn">واتساب</a>
+                        <a href="https://wa.me/${cleanPhone}?text=${waText}" target="_blank" class="wa-btn" onclick="toggleLock('${row.id}', true)">واتساب</a>
+                        <button class="lock-btn ${isLockedByMe ? 'active' : ''}" onclick="toggleLock('${row.id}', ${!isLockedByMe})">${isLockedByMe ? 'فك الحجز' : 'حجز متابعة'}</button>
                     </div>
                 </td>
             `;
@@ -537,13 +647,42 @@
         });
     }
 
+    async function toggleLock(id, shouldLock) {
+        const staff = getStaffName();
+        const lockOwner = shouldLock ? staff : null;
+
+        const { error } = await supabaseClient
+            .from('clinic_bookings')
+            .update({
+                locked_by: lockOwner,
+                locked_at: shouldLock ? new Date().toISOString() : null
+            })
+            .eq('id', id);
+
+        if (!error) {
+            const item = allBookings.find(b => b.id === id);
+            if (item) {
+                item.locked_by = lockOwner;
+                item.locked_at = shouldLock ? new Date().toISOString() : null;
+            }
+            renderTable();
+        }
+    }
+
     async function updateQueueNumber(id, newQueueVal) {
         const parsedNum = Number(newQueueVal);
         if (!parsedNum || parsedNum < 1) return;
 
+        const staff = getStaffName();
+        const nowIso = new Date().toISOString();
+
         const { error } = await supabaseClient
             .from('clinic_bookings')
-            .update({ queue_number: parsedNum })
+            .update({
+                queue_number: parsedNum,
+                updated_by: staff,
+                updated_at: nowIso
+            })
             .eq('id', id);
 
         if (error) {
@@ -551,17 +690,29 @@
         }
 
         const item = allBookings.find(b => b.id === id);
-        if (item) item.queue_number = parsedNum;
+        if (item) {
+            item.queue_number = parsedNum;
+            item.updated_by = staff;
+            item.updated_at = nowIso;
+        }
         renderTable();
     }
 
     async function changeBookingStatus(id, selectEl) {
         const newStatus = selectEl.value;
+        const staff = getStaffName();
+        const nowIso = new Date().toISOString();
         selectEl.className = 'status-select ' + getStatusClass(newStatus);
 
         const { error } = await supabaseClient
             .from('clinic_bookings')
-            .update({ status: newStatus })
+            .update({
+                status: newStatus,
+                updated_by: staff,
+                updated_at: nowIso,
+                locked_by: null,
+                locked_at: null
+            })
             .eq('id', id);
 
         if (error) {
@@ -571,8 +722,14 @@
         }
 
         const item = allBookings.find(b => b.id === id);
-        if (item) item.status = newStatus;
+        if (item) {
+            item.status = newStatus;
+            item.updated_by = staff;
+            item.updated_at = nowIso;
+            item.locked_by = null;
+        }
         updateStats();
+        renderTable();
     }
 
     function exportToCSV() {
@@ -581,7 +738,7 @@
             return;
         }
 
-        const headers = ['رقم الحجز في الكشف', 'اسم المريض', 'التليفون', 'السن', 'العيادة', 'اليوم', 'الطبيب', 'الموعد', 'جهة التعاقد', 'ملاحظات', 'الحالة'];
+        const headers = ['رقم الحجز في الكشف', 'اسم المريض', 'التليفون', 'السن', 'العيادة', 'اليوم', 'الطبيب', 'الموعد', 'جهة التعاقد', 'الحالة', 'آخر تعديل بواسطة'];
         const rows = allBookings.map(b => [
             b.queue_number ?? '',
             b.patient_name,
@@ -592,8 +749,8 @@
             b.doctor_name,
             b.appointment_time,
             b.insurance_type,
-            b.notes || '',
-            b.status || 'قيد الانتظار'
+            b.status || 'قيد الانتظار',
+            b.updated_by || ''
         ]);
 
         const csvContent = '\uFEFF' + [headers, ...rows]
@@ -607,6 +764,15 @@
         link.click();
     }
 
+    // اشتراك لحظي لاستقبال أي إضافة أو تعديل من أي موظف آخر فوراً
+    supabaseClient
+        .channel('clinic_bookings_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_bookings' }, () => {
+            fetchBookings(true);
+        })
+        .subscribe();
+
+    getStaffName();
     fetchBookings();
 </script>
 
