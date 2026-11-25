@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة متابعة الاستقبال - عيادات مستشفى ابن سينا التخصصية</title>
+    <title>لوحة متابعة الاستقبال والانتظار - عيادات مستشفى ابن سينا التخصصية</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -142,10 +142,10 @@
         }
 
         .btn {
-            padding: 10px 18px;
+            padding: 10px 16px;
             border: none;
             border-radius: 10px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -172,11 +172,23 @@
             background: #333;
         }
 
+        .btn-outline {
+            background: #fff;
+            color: var(--primary-black);
+            border: 1.5px solid #CBD5E1;
+        }
+
+        .btn-outline.active {
+            background: #111111;
+            color: #fff;
+            border-color: #111111;
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-bottom: 22px;
+            margin-bottom: 18px;
         }
 
         .stat-card {
@@ -185,6 +197,13 @@
             border-radius: 12px;
             padding: 15px;
             text-align: center;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-red);
         }
 
         .stat-card h3 {
@@ -201,35 +220,63 @@
             color: var(--primary-black);
         }
 
+        .stat-card.pending {
+            background: #FFFBEB;
+            border-color: #F59E0B;
+        }
+
         .stat-card.pending .num { color: #D97706; }
         .stat-card.confirmed .num { color: #16A34A; }
-        .stat-card.done .num { color: var(--primary-red); }
 
-        .filters-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-            background: #F9FAFB;
-            padding: 15px;
+        .waiting-board-box {
+            background: #FFFBEB;
+            border: 1.5px solid #F59E0B;
             border-radius: 12px;
-            border: 1px solid #EAECEF;
+            padding: 14px 16px;
+            margin-bottom: 18px;
         }
 
-        .filters-bar input,
-        .filters-bar select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            background: #fff;
+        .waiting-board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
-        .filters-bar input:focus,
-        .filters-bar select:focus {
-            border-color: var(--primary-red);
-            outline: none;
+        .waiting-board-header h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #92400E;
+        }
+
+        .waiting-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .waiting-chip {
+            background: #ffffff;
+            border: 1px solid #FBBF24;
+            border-radius: 9px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #111111;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .waiting-chip .q-tag {
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 1px 7px;
+            border-radius: 6px;
+            font-weight: 800;
         }
 
         .table-responsive {
@@ -242,7 +289,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9rem;
-            min-width: 1120px;
+            min-width: 1150px;
         }
 
         th {
@@ -282,6 +329,69 @@
             padding: 2px 8px;
             border-radius: 6px;
             margin-top: 4px;
+        }
+
+        .click-copy-target {
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            display: inline-block;
+        }
+
+        .click-copy-target:hover {
+            background-color: #EEF2FF;
+            color: #1E40AF;
+        }
+
+        .click-copy-target.copied-flash {
+            background-color: #DCFCE7 !important;
+            color: #166534 !important;
+        }
+
+        .copy-actions-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 5px;
+        }
+
+        .copy-field-btn {
+            background-color: #F3F4F6;
+            color: #111111;
+            border: 1px solid #CBD5E1;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.73rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .copy-field-btn:hover {
+            background-color: #111111;
+            color: #ffffff;
+            border-color: #111111;
+        }
+
+        .copy-field-btn.all-btn {
+            background-color: #FFF0F1;
+            color: var(--primary-red);
+            border-color: rgba(227, 6, 19, 0.35);
+        }
+
+        .copy-field-btn.all-btn:hover {
+            background-color: var(--primary-red);
+            color: #ffffff;
+        }
+
+        .copy-field-btn.copied {
+            background-color: #16A34A !important;
+            color: #ffffff !important;
+            border-color: #16A34A !important;
         }
 
         .action-cell {
@@ -374,7 +484,6 @@
 
         .status-pending { background: #FEF3C7; color: #92400E; border-color: #F59E0B; }
         .status-confirmed { background: #DCFCE7; color: #166534; border-color: #22C55E; }
-        .status-done { background: #E0E7FF; color: #1E40AF; border-color: #6366F1; }
         .status-cancelled { background: #FEE2E2; color: #991B1B; border-color: #EF4444; }
 
         .audit-text {
@@ -414,8 +523,8 @@
         <div class="brand-box">
             <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
             <div class="brand-title">
-                <h1>لوحة متابعة الاستقبال والحجوزات</h1>
-                <span>عيادات مستشفى ابن سينا التخصصية - العاشر من رمضان</span>
+                <h1>لوحة متابعة الاستقبال والانتظار</h1>
+                <span>عيادات مستشفى ابن سينا التخصصية - العاشر من رمضان | مسح تلقائي الساعة 12:00 ص</span>
             </div>
         </div>
 
@@ -439,54 +548,32 @@
 
     <!-- الإحصائيات -->
     <div class="stats-grid">
-        <div class="stat-card">
-            <h3>إجمالي الحجوزات</h3>
+        <div class="stat-card" onclick="showAllStatuses()">
+            <h3>إجمالي اليوم</h3>
             <div class="num" id="statTotal">0</div>
         </div>
-        <div class="stat-card pending">
-            <h3>قيد الانتظار</h3>
+        <div class="stat-card pending" onclick="focusWaitingScreen()">
+            <h3>قيد الانتظار (صفحة الانتظار)</h3>
             <div class="num" id="statPending">0</div>
         </div>
-        <div class="stat-card confirmed">
+        <div class="stat-card confirmed" onclick="setStatusView('تم التأكيد')">
             <h3>تم التأكيد</h3>
             <div class="num" id="statConfirmed">0</div>
         </div>
-        <div class="stat-card done">
-            <h3>تم الكشف</h3>
-            <div class="num" id="statDone">0</div>
-        </div>
     </div>
 
-    <!-- الفلاتر والبحث -->
-    <div class="filters-bar">
-        <input type="text" id="searchInput" placeholder="بحث باسم المريض أو رقم التليفون أو رقم الكشف..." oninput="renderTable()">
-        
-        <select id="clinicFilter" onchange="renderTable()">
-            <option value="">كل العيادات</option>
-            <option value="عيادة الباطنة">عيادة الباطنة</option>
-            <option value="عيادة الباطنة والكلى">عيادة الباطنة والكلى</option>
-            <option value="عيادة الجهاز الهضمي والباطنة">عيادة الجهاز الهضمي والباطنة</option>
-            <option value="عيادة العظام">عيادة العظام</option>
-        </select>
-
-        <select id="dayFilter" onchange="renderTable()">
-            <option value="">كل الأيام</option>
-            <option value="السبت">السبت</option>
-            <option value="الأحد">الأحد</option>
-            <option value="الاثنين">الاثنين</option>
-            <option value="الثلاثاء">الثلاثاء</option>
-            <option value="الأربعاء">الأربعاء</option>
-            <option value="الخميس">الخميس</option>
-            <option value="الجمعة">الجمعة</option>
-        </select>
-
-        <select id="statusFilter" onchange="renderTable()">
-            <option value="">كل الحالات</option>
-            <option value="قيد الانتظار">قيد الانتظار</option>
-            <option value="تم التأكيد">تم التأكيد</option>
-            <option value="تم الكشف">تم الكشف</option>
-            <option value="ملغي">ملغي</option>
-        </select>
+    <!-- صفحة الانتظار المباشرة -->
+    <div id="waitingScreenSection" class="waiting-board-box">
+        <div class="waiting-board-header">
+            <h2>صفحة الانتظار المباشرة (حالات الانتظار)</h2>
+            <div class="action-buttons">
+                <button type="button" id="waitingViewBtn" class="btn btn-outline active" onclick="toggleWaitingMode()">عرض الانتظار فقط</button>
+                <button type="button" id="allViewBtn" class="btn btn-outline" onclick="showAllStatuses()">عرض كل الحالات</button>
+            </div>
+        </div>
+        <div id="waitingChipsContainer" class="waiting-chips">
+            <span style="color:#666; font-size:0.85rem;">جاري تحميل حالات الانتظار...</span>
+        </div>
     </div>
 
     <!-- جدول الحجوزات -->
@@ -497,12 +584,12 @@
                     <th>#</th>
                     <th>اسم المريض</th>
                     <th>رقم التليفون</th>
+                    <th>التعاقد / الشركة</th>
                     <th>السن</th>
                     <th>العيادة</th>
                     <th>اليوم</th>
                     <th>الطبيب</th>
                     <th>الموعد</th>
-                    <th>التعاقد</th>
                     <th>حالة الحجز</th>
                     <th>آخر تعديل</th>
                     <th>رقم الكشف والاستلام والتأكيد</th>
@@ -532,6 +619,8 @@
 
     let allBookings = [];
     let isUserInteracting = false;
+    let currentStatusView = 'قيد الانتظار';
+    let lastMidnightPurgeDate = localStorage.getItem('ibn_sina_last_midnight_purge') || '';
     const liveStatusEl = document.querySelector('.live-pill');
 
     function setRealtimeBadge(state) {
@@ -561,6 +650,38 @@
         localStorage.setItem('ibn_sina_staff_name', val);
     }
 
+    function setStatusView(val) {
+        currentStatusView = val;
+        syncWaitingButtonState();
+        renderTable();
+    }
+
+    function focusWaitingScreen() {
+        setStatusView('قيد الانتظار');
+        document.getElementById('waitingScreenSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function toggleWaitingMode() {
+        currentStatusView = currentStatusView === 'قيد الانتظار' ? '' : 'قيد الانتظار';
+        syncWaitingButtonState();
+        renderTable();
+    }
+
+    function showAllStatuses() {
+        setStatusView('');
+    }
+
+    function syncWaitingButtonState() {
+        const waitingBtn = document.getElementById('waitingViewBtn');
+        const allBtn = document.getElementById('allViewBtn');
+        if (waitingBtn) {
+            waitingBtn.classList.toggle('active', currentStatusView === 'قيد الانتظار');
+        }
+        if (allBtn) {
+            allBtn.classList.toggle('active', currentStatusView === '');
+        }
+    }
+
     function hideNewOrderToast() {
         document.getElementById('newOrderToast').style.display = 'none';
     }
@@ -569,8 +690,8 @@
         const toast = document.getElementById('newOrderToast');
         const textEl = document.getElementById('newOrderText');
         textEl.textContent = latestPatientName
-            ? `تم استقبال حجز جديد للمريض: ${latestPatientName} وتمت إضافته تلقائياً.`
-            : 'تم استقبال حجز جديد وتمت إضافته تلقائياً!';
+            ? `تم استقبال حجز جديد للمريض: ${latestPatientName} وتمت إضافته إلى الانتظار.`
+            : 'تم استقبال حجز جديد وتمت إضافته إلى الانتظار!';
         toast.style.display = 'flex';
     }
 
@@ -599,6 +720,31 @@
         return records;
     }
 
+    async function purgeDailyBookingsAtMidnight() {
+        const { error } = await supabaseClient
+            .from('clinic_bookings')
+            .delete()
+            .not('id', 'is', null);
+
+        if (!error) {
+            allBookings = [];
+            updateSyncClock();
+            updateStats();
+            renderWaitingScreen();
+            renderTable();
+        }
+    }
+
+    function checkMidnightAutoPurge() {
+        const now = new Date();
+        const todayKey = now.toISOString().slice(0, 10);
+        if (now.getHours() === 0 && now.getMinutes() === 0 && lastMidnightPurgeDate !== todayKey) {
+            lastMidnightPurgeDate = todayKey;
+            localStorage.setItem('ibn_sina_last_midnight_purge', todayKey);
+            purgeDailyBookingsAtMidnight();
+        }
+    }
+
     async function fetchBookings(silent = false) {
         if (silent && isUserInteracting) return;
 
@@ -623,6 +769,7 @@
         allBookings = assignQueueNumbers(data || []);
         updateSyncClock();
         updateStats();
+        renderWaitingScreen();
         renderTable();
     }
 
@@ -630,39 +777,111 @@
         document.getElementById('statTotal').textContent = allBookings.length;
         document.getElementById('statPending').textContent = allBookings.filter(b => (b.status || 'قيد الانتظار') === 'قيد الانتظار').length;
         document.getElementById('statConfirmed').textContent = allBookings.filter(b => b.status === 'تم التأكيد').length;
-        document.getElementById('statDone').textContent = allBookings.filter(b => b.status === 'تم الكشف').length;
+    }
+
+    function renderWaitingScreen() {
+        const container = document.getElementById('waitingChipsContainer');
+        if (!container) return;
+
+        const waitingList = allBookings.filter(b => (b.status || 'قيد الانتظار') === 'قيد الانتظار');
+        if (waitingList.length === 0) {
+            container.innerHTML = '<span style="color:#92400E; font-size:0.85rem;">لا توجد حالات في الانتظار حالياً.</span>';
+            return;
+        }
+
+        container.innerHTML = '';
+        waitingList.forEach(item => {
+            const chip = document.createElement('div');
+            chip.className = 'waiting-chip';
+            chip.innerHTML = `
+                <span class="q-tag">#${item.queue_number ?? '-'}</span>
+                <span>${item.patient_name || ''}</span>
+                <span style="color:#666;">(${item.clinic || ''} - ${item.appointment_time || ''})</span>
+            `;
+            container.appendChild(chip);
+        });
     }
 
     function getStatusClass(status) {
         if (status === 'تم التأكيد') return 'status-confirmed';
-        if (status === 'تم الكشف') return 'status-done';
         if (status === 'ملغي') return 'status-cancelled';
         return 'status-pending';
     }
 
+    async function writeToClipboard(textToCopy) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(textToCopy);
+        } else {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+        }
+    }
+
+    async function copySingleField(id, fieldKey, el, isButton = true) {
+        const row = allBookings.find(b => b.id === id);
+        if (!row) return;
+
+        let textToCopy = '';
+        if (fieldKey === 'all_lines') {
+            textToCopy = [
+                row.patient_name ?? '',
+                row.phone ?? '',
+                row.insurance_type ?? '',
+                row.age ?? ''
+            ].join('\n');
+        } else if (fieldKey === 'all_tab') {
+            textToCopy = [
+                row.patient_name ?? '',
+                row.phone ?? '',
+                row.insurance_type ?? '',
+                row.age ?? ''
+            ].join('\t');
+        } else {
+            const fieldMap = {
+                patient_name: row.patient_name ?? '',
+                phone: row.phone ?? '',
+                insurance_type: row.insurance_type ?? '',
+                age: row.age ?? ''
+            };
+            textToCopy = String(fieldMap[fieldKey] ?? '');
+        }
+
+        try {
+            await writeToClipboard(textToCopy);
+            if (isButton && el) {
+                const originalText = el.textContent;
+                el.textContent = 'تم النسخ ✓';
+                el.classList.add('copied');
+                setTimeout(() => {
+                    el.textContent = originalText;
+                    el.classList.remove('copied');
+                }, 1300);
+            } else if (el) {
+                el.classList.add('copied-flash');
+                setTimeout(() => {
+                    el.classList.remove('copied-flash');
+                }, 700);
+            }
+        } catch (err) {
+            alert('تعذر النسخ تلقائياً، يرجى النسخ يدوياً.');
+        }
+    }
+
     function renderTable() {
         const tbody = document.getElementById('bookingsTableBody');
-        const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-        const clinicVal = document.getElementById('clinicFilter').value;
-        const dayVal = document.getElementById('dayFilter').value;
-        const statusVal = document.getElementById('statusFilter').value;
         const currentStaff = getStaffName();
 
         const filtered = allBookings.filter(b => {
-            const qNumStr = String(b.queue_number || '');
-            const matchSearch = !searchTerm ||
-                (b.patient_name && b.patient_name.toLowerCase().includes(searchTerm)) ||
-                (b.phone && b.phone.includes(searchTerm)) ||
-                qNumStr.includes(searchTerm);
-            const matchClinic = !clinicVal || b.clinic === clinicVal;
-            const matchDay = !dayVal || b.appointment_day === dayVal;
             const currentStatus = b.status || 'قيد الانتظار';
-            const matchStatus = !statusVal || currentStatus === statusVal;
-            return matchSearch && matchClinic && matchDay && matchStatus;
+            return !currentStatusView || currentStatus === currentStatusView;
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">لا توجد حجوزات مطابقة للبحث الحالي</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">لا توجد حجوزات للعرض حالياً</td></tr>';
             return;
         }
 
@@ -685,21 +904,40 @@
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>
-                    <strong>${row.patient_name}</strong>
+                    <strong class="click-copy-target" onclick="copySingleField('${row.id}', 'patient_name', this, false)" title="اضغط لنسخ الاسم">${row.patient_name}</strong>
                     ${isLocked ? `<br><span class="lock-tag">مستلم بواسطة: ${row.locked_by}</span>` : ''}
+                    <div class="copy-actions-wrap">
+                        <button type="button" class="copy-field-btn" onclick="copySingleField('${row.id}', 'patient_name', this, true)" title="نسخ الاسم">نسخ الاسم</button>
+                        <button type="button" class="copy-field-btn all-btn" onclick="copySingleField('${row.id}', 'all_lines', this, true)" title="نسخ الاسم والتليفون والشركة والسن">نسخ الـ 4</button>
+                        <button type="button" class="copy-field-btn" onclick="copySingleField('${row.id}', 'all_tab', this, true)" title="نسخ مفصول بـ Tab للـ ERP">نسخ Tab</button>
+                    </div>
                 </td>
-                <td dir="ltr" style="text-align:right;">${row.phone}</td>
-                <td>${row.age}</td>
+                <td dir="ltr" style="text-align:right;">
+                    <span class="click-copy-target" onclick="copySingleField('${row.id}', 'phone', this, false)" title="اضغط لنسخ التليفون">${row.phone}</span>
+                    <div class="copy-actions-wrap">
+                        <button type="button" class="copy-field-btn" onclick="copySingleField('${row.id}', 'phone', this, true)" title="نسخ التليفون">نسخ التليفون</button>
+                    </div>
+                </td>
+                <td>
+                    <span class="click-copy-target" onclick="copySingleField('${row.id}', 'insurance_type', this, false)" title="اضغط لنسخ الشركة">${row.insurance_type}</span>
+                    <div class="copy-actions-wrap">
+                        <button type="button" class="copy-field-btn" onclick="copySingleField('${row.id}', 'insurance_type', this, true)" title="نسخ الشركة">نسخ الشركة</button>
+                    </div>
+                </td>
+                <td>
+                    <span class="click-copy-target" onclick="copySingleField('${row.id}', 'age', this, false)" title="اضغط لنسخ السن">${row.age}</span>
+                    <div class="copy-actions-wrap">
+                        <button type="button" class="copy-field-btn" onclick="copySingleField('${row.id}', 'age', this, true)" title="نسخ السن">نسخ السن</button>
+                    </div>
+                </td>
                 <td>${row.clinic}</td>
                 <td>${row.appointment_day}</td>
                 <td>${row.doctor_name}</td>
                 <td><strong>${row.appointment_time}</strong></td>
-                <td>${row.insurance_type}</td>
                 <td>
                     <select class="status-select ${statusClass}" ${lockedByOther ? 'disabled' : ''} onfocus="isUserInteracting=true" onblur="isUserInteracting=false" onchange="isUserInteracting=false; changeBookingStatus('${row.id}', this.value)">
                         <option value="قيد الانتظار" ${status === 'قيد الانتظار' ? 'selected' : ''}>قيد الانتظار</option>
                         <option value="تم التأكيد" ${status === 'تم التأكيد' ? 'selected' : ''}>تم التأكيد</option>
-                        <option value="تم الكشف" ${status === 'تم الكشف' ? 'selected' : ''}>تم الكشف</option>
                         <option value="ملغي" ${status === 'ملغي' ? 'selected' : ''}>ملغي</option>
                     </select>
                 </td>
@@ -814,6 +1052,7 @@
             row.updated_by = staff;
             row.updated_at = nowIso;
         }
+        renderWaitingScreen();
         renderTable();
     }
 
@@ -853,6 +1092,7 @@
             row.locked_by = null;
         }
         updateStats();
+        renderWaitingScreen();
         renderTable();
     }
 
@@ -862,17 +1102,17 @@
             return;
         }
 
-        const headers = ['رقم الحجز في الكشف', 'اسم المريض', 'التليفون', 'السن', 'العيادة', 'اليوم', 'الطبيب', 'الموعد', 'جهة التعاقد', 'الحالة', 'آخر تعديل بواسطة'];
+        const headers = ['رقم الحجز في الكشف', 'اسم المريض', 'التليفون', 'التعاقد / الشركة', 'السن', 'العيادة', 'اليوم', 'الطبيب', 'الموعد', 'الحالة', 'آخر تعديل بواسطة'];
         const rows = allBookings.map(b => [
             b.queue_number ?? '',
             b.patient_name,
             b.phone,
+            b.insurance_type,
             b.age,
             b.clinic,
             b.appointment_day,
             b.doctor_name,
             b.appointment_time,
-            b.insurance_type,
             b.status || 'قيد الانتظار',
             b.updated_by || ''
         ]);
@@ -904,6 +1144,7 @@
         allBookings.unshift(newRow);
         updateSyncClock();
         updateStats();
+        renderWaitingScreen();
         showNewOrderToast(newRow.patient_name);
         if (!isUserInteracting) renderTable();
     }
@@ -916,10 +1157,19 @@
         allBookings[idx] = { ...allBookings[idx], ...updatedRow };
         updateSyncClock();
         updateStats();
+        renderWaitingScreen();
         if (!isUserInteracting) renderTable();
     }
 
-    // تحديث لحظي سريع عبر WebSocket بدون استعلام دوري يثقل الباقة المجانية
+    function applyDeleteFast(deletedRow) {
+        if (!deletedRow || !deletedRow.id) return;
+        allBookings = allBookings.filter(b => b.id !== deletedRow.id);
+        updateSyncClock();
+        updateStats();
+        renderWaitingScreen();
+        if (!isUserInteracting) renderTable();
+    }
+
     supabaseClient
         .channel('clinic_bookings_fast_lane')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'clinic_bookings' }, (payload) => {
@@ -928,10 +1178,15 @@
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'clinic_bookings' }, (payload) => {
             applyUpdateFast(payload.new);
         })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'clinic_bookings' }, (payload) => {
+            applyDeleteFast(payload.old);
+        })
         .subscribe((status) => {
             setRealtimeBadge(status);
         });
 
+    setInterval(checkMidnightAutoPurge, 30000);
+    syncWaitingButtonState();
     getStaffName();
     fetchBookings(false);
 </script>
