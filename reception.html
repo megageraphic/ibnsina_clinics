@@ -30,7 +30,7 @@
         }
 
         .dashboard-container {
-            max-width: 1280px;
+            max-width: 1320px;
             margin: 0 auto;
             background: #ffffff;
             padding: 25px;
@@ -117,7 +117,6 @@
             background: #333;
         }
 
-        /* بطاقات الإحصائيات */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -151,7 +150,6 @@
         .stat-card.confirmed .num { color: #16A34A; }
         .stat-card.done .num { color: var(--primary-red); }
 
-        /* شريط البحث والفلترة */
         .filters-bar {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -179,7 +177,6 @@
             outline: none;
         }
 
-        /* جدول البيانات */
         .table-responsive {
             overflow-x: auto;
             border-radius: 10px;
@@ -190,7 +187,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.92rem;
-            min-width: 980px;
+            min-width: 1020px;
         }
 
         th {
@@ -216,6 +213,40 @@
             background-color: #FFF5F5;
         }
 
+        .action-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .queue-badge {
+            display: inline-block;
+            background: #FFF0F1;
+            color: var(--primary-red);
+            border: 1px solid rgba(227, 6, 19, 0.35);
+            font-weight: 800;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.9rem;
+        }
+
+        .queue-input {
+            width: 60px;
+            padding: 5px 7px;
+            border: 1.5px solid #DCDFE4;
+            border-radius: 7px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--primary-black);
+            background: #fff;
+        }
+
+        .queue-input:focus {
+            border-color: var(--primary-red);
+            outline: none;
+        }
+
         .status-select {
             padding: 6px 10px;
             border-radius: 8px;
@@ -234,32 +265,16 @@
             background-color: #25D366;
             color: #fff;
             text-decoration: none;
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 8px;
             font-weight: 700;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             display: inline-block;
             white-space: nowrap;
         }
 
         .wa-btn:hover {
             background-color: #1EBE5D;
-        }
-
-        .del-btn {
-            background-color: #FFF0F1;
-            color: var(--primary-red);
-            border: 1px solid rgba(227, 6, 19, 0.3);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.82rem;
-            cursor: pointer;
-        }
-
-        .del-btn:hover {
-            background-color: var(--primary-red);
-            color: #fff;
         }
 
         .footer-credit {
@@ -326,7 +341,7 @@
 
     <!-- الفلاتر والبحث -->
     <div class="filters-bar">
-        <input type="text" id="searchInput" placeholder="بحث باسم المريض أو رقم التليفون..." oninput="renderTable()">
+        <input type="text" id="searchInput" placeholder="بحث باسم المريض أو رقم التليفون أو رقم الكشف..." oninput="renderTable()">
         
         <select id="clinicFilter" onchange="renderTable()">
             <option value="">كل العيادات</option>
@@ -372,7 +387,7 @@
                     <th>التعاقد</th>
                     <th>ملاحظات</th>
                     <th>حالة الحجز</th>
-                    <th>إجراءات</th>
+                    <th>رقم الكشف والواتساب</th>
                 </tr>
             </thead>
             <tbody id="bookingsTableBody">
@@ -399,6 +414,21 @@
 
     let allBookings = [];
 
+    function assignQueueNumbers(records) {
+        const chronological = [...records].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        const counters = {};
+
+        chronological.forEach(item => {
+            const key = `${item.clinic || ''}__${item.appointment_day || ''}__${item.doctor_name || ''}`;
+            counters[key] = (counters[key] || 0) + 1;
+            if (item.queue_number === null || item.queue_number === undefined || item.queue_number === '') {
+                item.queue_number = counters[key];
+            }
+        });
+
+        return records;
+    }
+
     async function fetchBookings() {
         const tbody = document.getElementById('bookingsTableBody');
         tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">جاري تحديث البيانات...</td></tr>';
@@ -414,7 +444,7 @@
             return;
         }
 
-        allBookings = data || [];
+        allBookings = assignQueueNumbers(data || []);
         updateStats();
         renderTable();
     }
@@ -441,9 +471,11 @@
         const statusVal = document.getElementById('statusFilter').value;
 
         const filtered = allBookings.filter(b => {
+            const qNumStr = String(b.queue_number || '');
             const matchSearch = !searchTerm ||
                 (b.patient_name && b.patient_name.toLowerCase().includes(searchTerm)) ||
-                (b.phone && b.phone.includes(searchTerm));
+                (b.phone && b.phone.includes(searchTerm)) ||
+                qNumStr.includes(searchTerm);
             const matchClinic = !clinicVal || b.clinic === clinicVal;
             const matchDay = !dayVal || b.appointment_day === dayVal;
             const currentStatus = b.status || 'قيد الانتظار';
@@ -460,12 +492,13 @@
         filtered.forEach((row, index) => {
             const status = row.status || 'قيد الانتظار';
             const statusClass = getStatusClass(status);
-            
-            // تجهيز رابط واتساب المريض للتأكيد المباشر
+            const queueNum = row.queue_number ?? '-';
+
             const cleanPhone = '2' + row.phone.replace(/\D/g, '');
             const waText = encodeURIComponent(
                 `أهلاً أ/ ${row.patient_name}،\n` +
                 `نؤكد لحضرتك حجز الكشف في *عيادات مستشفى ابن سينا التخصصية*:\n` +
+                `• رقم الحجز في الكشف: *#${queueNum}*\n` +
                 `• العيادة: ${row.clinic}\n` +
                 `• الطبيب: ${row.doctor_name}\n` +
                 `• اليوم: ${row.appointment_day} - الساعة ${row.appointment_time}\n` +
@@ -492,13 +525,34 @@
                         <option value="ملغي" ${status === 'ملغي' ? 'selected' : ''}>ملغي</option>
                     </select>
                 </td>
-                <td style="white-space: nowrap;">
-                    <a href="https://wa.me/${cleanPhone}?text=${waText}" target="_blank" class="wa-btn">واتساب</a>
-                    <button class="del-btn" onclick="deleteBooking('${row.id}')">حذف</button>
+                <td>
+                    <div class="action-cell">
+                        <span class="queue-badge">#${queueNum}</span>
+                        <input type="number" min="1" class="queue-input" value="${row.queue_number || ''}" onchange="updateQueueNumber('${row.id}', this.value)" title="تعديل رقم الحجز في الكشف">
+                        <a href="https://wa.me/${cleanPhone}?text=${waText}" target="_blank" class="wa-btn">واتساب</a>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    async function updateQueueNumber(id, newQueueVal) {
+        const parsedNum = Number(newQueueVal);
+        if (!parsedNum || parsedNum < 1) return;
+
+        const { error } = await supabaseClient
+            .from('clinic_bookings')
+            .update({ queue_number: parsedNum })
+            .eq('id', id);
+
+        if (error) {
+            console.warn('Queue update notice:', error.message);
+        }
+
+        const item = allBookings.find(b => b.id === id);
+        if (item) item.queue_number = parsedNum;
+        renderTable();
     }
 
     async function changeBookingStatus(id, selectEl) {
@@ -521,32 +575,15 @@
         updateStats();
     }
 
-    async function deleteBooking(id) {
-        if (!confirm('هل أنت متأكد من حذف هذا الحجز نهائياً؟')) return;
-
-        const { error } = await supabaseClient
-            .from('clinic_bookings')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            alert('تعذر حذف الحجز: ' + error.message);
-            return;
-        }
-
-        allBookings = allBookings.filter(b => b.id !== id);
-        updateStats();
-        renderTable();
-    }
-
     function exportToCSV() {
         if (allBookings.length === 0) {
             alert('لا توجد بيانات لتصديرها حالياً.');
             return;
         }
 
-        const headers = ['اسم المريض', 'التليفون', 'السن', 'العيادة', 'اليوم', 'الطبيب', 'الموعد', 'جهة التعاقد', 'ملاحظات', 'الحالة'];
+        const headers = ['رقم الحجز في الكشف', 'اسم المريض', 'التليفون', 'السن', 'العيادة', 'اليوم', 'الطبيب', 'الموعد', 'جهة التعاقد', 'ملاحظات', 'الحالة'];
         const rows = allBookings.map(b => [
+            b.queue_number ?? '',
             b.patient_name,
             b.phone,
             b.age,
@@ -570,7 +607,6 @@
         link.click();
     }
 
-    // تحميل البيانات عند فتح الصفحة
     fetchBookings();
 </script>
 
