@@ -263,27 +263,10 @@
             margin-top: 4px;
         }
 
-        .lock-btn {
-            background: #F3F4F6;
-            color: #111;
-            border: 1px solid #CBD5E1;
-            padding: 5px 9px;
-            border-radius: 7px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .lock-btn.active {
-            background: #F59E0B;
-            color: #fff;
-            border-color: #D97706;
-        }
-
         .action-cell {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             white-space: nowrap;
         }
 
@@ -294,12 +277,12 @@
             border: 1px solid rgba(227, 6, 19, 0.35);
             font-weight: 800;
             border-radius: 8px;
-            padding: 4px 10px;
-            font-size: 0.9rem;
+            padding: 4px 9px;
+            font-size: 0.88rem;
         }
 
         .queue-input {
-            width: 58px;
+            width: 56px;
             padding: 5px 6px;
             border: 1.5px solid #DCDFE4;
             border-radius: 7px;
@@ -312,6 +295,51 @@
         .queue-input:focus {
             border-color: var(--primary-red);
             outline: none;
+        }
+
+        .claim-btn {
+            background-color: #F59E0B;
+            color: #fff;
+            border: none;
+            padding: 6px 11px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .claim-btn:hover:not(:disabled) {
+            background-color: #D97706;
+        }
+
+        .claim-btn.claimed-by-me {
+            background-color: #111111;
+            color: #fff;
+        }
+
+        .claim-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .confirm-btn {
+            background-color: #16A34A;
+            color: #fff;
+            border: none;
+            padding: 6px 11px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .confirm-btn:hover:not(:disabled) {
+            background-color: #15803D;
+        }
+
+        .confirm-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
 
         .status-select {
@@ -327,22 +355,6 @@
         .status-confirmed { background: #DCFCE7; color: #166534; border-color: #22C55E; }
         .status-done { background: #E0E7FF; color: #1E40AF; border-color: #6366F1; }
         .status-cancelled { background: #FEE2E2; color: #991B1B; border-color: #EF4444; }
-
-        .wa-btn {
-            background-color: #25D366;
-            color: #fff;
-            text-decoration: none;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .wa-btn:hover {
-            background-color: #1EBE5D;
-        }
 
         .audit-text {
             font-size: 0.8rem;
@@ -389,11 +401,11 @@
         <div class="staff-bar">
             <label for="staffName">اسم الموظف:</label>
             <input type="text" id="staffName" placeholder="اكتب اسمك..." oninput="saveStaffName()">
-            <span class="live-pill">تحديث لحظي نشط</span>
+            <span class="live-pill">تحديث كل 2 ثانية</span>
         </div>
 
         <div class="action-buttons">
-            <button class="btn btn-red" onclick="fetchBookings()">تحديث البيانات</button>
+            <button class="btn btn-red" onclick="fetchBookings()">تحديث الآن</button>
             <button class="btn btn-black" onclick="exportToCSV()">تصدير Excel (CSV)</button>
         </div>
     </div>
@@ -466,7 +478,7 @@
                     <th>التعاقد</th>
                     <th>حالة الحجز</th>
                     <th>آخر تعديل</th>
-                    <th>رقم الكشف والواتساب</th>
+                    <th>رقم الكشف والاستلام والتأكيد</th>
                 </tr>
             </thead>
             <tbody id="bookingsTableBody">
@@ -492,6 +504,7 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allBookings = [];
+    let isEditingInput = false;
 
     function getStaffName() {
         const input = document.getElementById('staffName');
@@ -523,6 +536,8 @@
     }
 
     async function fetchBookings(silent = false) {
+        if (silent && isEditingInput) return;
+
         const tbody = document.getElementById('bookingsTableBody');
         if (!silent) {
             tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 25px;">جاري تحديث البيانات...</td></tr>';
@@ -593,20 +608,10 @@
             const queueNum = row.queue_number ?? '-';
             const isLocked = Boolean(row.locked_by);
             const isLockedByMe = row.locked_by === currentStaff;
-
-            const cleanPhone = '2' + row.phone.replace(/\D/g, '');
-            const waText = encodeURIComponent(
-                `أهلاً أ/ ${row.patient_name}،\n` +
-                `نؤكد لحضرتك حجز الكشف في *عيادات مستشفى ابن سينا التخصصية*:\n` +
-                `• رقم الحجز في الكشف: *#${queueNum}*\n` +
-                `• العيادة: ${row.clinic}\n` +
-                `• الطبيب: ${row.doctor_name}\n` +
-                `• اليوم: ${row.appointment_day} - الساعة ${row.appointment_time}\n` +
-                `• العنوان: العاشر من رمضان - أرض المستشفيات - أمام نادي المجاورة العاشرة.`
-            );
+            const lockedByOther = isLocked && !isLockedByMe;
 
             const auditInfo = row.updated_by
-                ? `<strong>${row.updated_by}</strong><br><span>${row.updated_at ? new Date(row.updated_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : ''}</span>`
+                ? `<strong>${row.updated_by}</strong><br><span>${row.updated_at ? new Date(row.updated_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''}</span>`
                 : '<span style="color:#999;">لم يُعدّل بعد</span>';
 
             const tr = document.createElement('tr');
@@ -616,7 +621,7 @@
                 <td>${index + 1}</td>
                 <td>
                     <strong>${row.patient_name}</strong>
-                    ${isLocked ? `<br><span class="lock-tag">قيد المتابعة: ${row.locked_by}</span>` : ''}
+                    ${isLocked ? `<br><span class="lock-tag">مستلم بواسطة: ${row.locked_by}</span>` : ''}
                 </td>
                 <td dir="ltr" style="text-align:right;">${row.phone}</td>
                 <td>${row.age}</td>
@@ -626,7 +631,7 @@
                 <td><strong>${row.appointment_time}</strong></td>
                 <td>${row.insurance_type}</td>
                 <td>
-                    <select class="status-select ${statusClass}" onchange="changeBookingStatus('${row.id}', this)">
+                    <select class="status-select ${statusClass}" ${lockedByOther ? 'disabled' : ''} onchange="changeBookingStatus('${row.id}', this.value)">
                         <option value="قيد الانتظار" ${status === 'قيد الانتظار' ? 'selected' : ''}>قيد الانتظار</option>
                         <option value="تم التأكيد" ${status === 'تم التأكيد' ? 'selected' : ''}>تم التأكيد</option>
                         <option value="تم الكشف" ${status === 'تم الكشف' ? 'selected' : ''}>تم الكشف</option>
@@ -637,9 +642,9 @@
                 <td>
                     <div class="action-cell">
                         <span class="queue-badge">#${queueNum}</span>
-                        <input type="number" min="1" class="queue-input" value="${row.queue_number || ''}" onchange="updateQueueNumber('${row.id}', this.value)" title="تعديل رقم الحجز في الكشف">
-                        <a href="https://wa.me/${cleanPhone}?text=${waText}" target="_blank" class="wa-btn" onclick="toggleLock('${row.id}', true)">واتساب</a>
-                        <button class="lock-btn ${isLockedByMe ? 'active' : ''}" onclick="toggleLock('${row.id}', ${!isLockedByMe})">${isLockedByMe ? 'فك الحجز' : 'حجز متابعة'}</button>
+                        <input type="number" min="1" class="queue-input" value="${row.queue_number || ''}" ${lockedByOther ? 'disabled' : ''} onfocus="isEditingInput=true" onblur="isEditingInput=false" onchange="isEditingInput=false; updateQueueNumber('${row.id}', this.value)" title="رقم الحجز في الكشف">
+                        <button class="claim-btn ${isLockedByMe ? 'claimed-by-me' : ''}" ${lockedByOther ? 'disabled' : ''} onclick="toggleClaim('${row.id}', ${!isLockedByMe})">${isLockedByMe ? 'إلغاء الاستلام' : 'استلام'}</button>
+                        <button class="confirm-btn" ${lockedByOther || status === 'تم التأكيد' ? 'disabled' : ''} onclick="confirmBooking('${row.id}')">${status === 'تم التأكيد' ? 'مؤكد ✓' : 'تأكيد'}</button>
                     </div>
                 </td>
             `;
@@ -647,33 +652,83 @@
         });
     }
 
-    async function toggleLock(id, shouldLock) {
+    async function toggleClaim(id, shouldClaim) {
         const staff = getStaffName();
-        const lockOwner = shouldLock ? staff : null;
+        const nowIso = new Date().toISOString();
 
-        const { error } = await supabaseClient
-            .from('clinic_bookings')
-            .update({
-                locked_by: lockOwner,
-                locked_at: shouldLock ? new Date().toISOString() : null
-            })
-            .eq('id', id);
+        if (shouldClaim) {
+            const { data: currentRow, error: readErr } = await supabaseClient
+                .from('clinic_bookings')
+                .select('locked_by')
+                .eq('id', id)
+                .single();
 
-        if (!error) {
-            const item = allBookings.find(b => b.id === id);
-            if (item) {
-                item.locked_by = lockOwner;
-                item.locked_at = shouldLock ? new Date().toISOString() : null;
+            if (readErr) {
+                alert('تعذر التحقق من الحالة: ' + readErr.message);
+                return;
             }
-            renderTable();
+
+            if (currentRow && currentRow.locked_by && currentRow.locked_by !== staff) {
+                alert(`هذه الحالة مستلمة حالياً بواسطة: ${currentRow.locked_by}`);
+                fetchBookings(true);
+                return;
+            }
+
+            const { data: updatedRows, error } = await supabaseClient
+                .from('clinic_bookings')
+                .update({
+                    locked_by: staff,
+                    locked_at: nowIso,
+                    updated_by: staff,
+                    updated_at: nowIso
+                })
+                .eq('id', id)
+                .is('locked_by', null)
+                .select();
+
+            if (error || !updatedRows || updatedRows.length === 0) {
+                alert('سبقك موظف آخر باستلام هذه الحالة في نفس اللحظة.');
+                fetchBookings(true);
+                return;
+            }
+        } else {
+            const { error } = await supabaseClient
+                .from('clinic_bookings')
+                .update({
+                    locked_by: null,
+                    locked_at: null,
+                    updated_by: staff,
+                    updated_at: nowIso
+                })
+                .eq('id', id)
+                .eq('locked_by', staff);
+
+            if (error) {
+                alert('تعذر إلغاء الاستلام: ' + error.message);
+                return;
+            }
         }
+
+        fetchBookings(true);
+    }
+
+    async function confirmBooking(id) {
+        await changeBookingStatus(id, 'تم التأكيد');
     }
 
     async function updateQueueNumber(id, newQueueVal) {
+        const row = allBookings.find(b => b.id === id);
+        const staff = getStaffName();
+
+        if (row && row.locked_by && row.locked_by !== staff) {
+            alert(`لا يمكن التعديل؛ الحالة مستلمة بواسطة: ${row.locked_by}`);
+            renderTable();
+            return;
+        }
+
         const parsedNum = Number(newQueueVal);
         if (!parsedNum || parsedNum < 1) return;
 
-        const staff = getStaffName();
         const nowIso = new Date().toISOString();
 
         const { error } = await supabaseClient
@@ -689,20 +744,25 @@
             console.warn('Queue update notice:', error.message);
         }
 
-        const item = allBookings.find(b => b.id === id);
-        if (item) {
-            item.queue_number = parsedNum;
-            item.updated_by = staff;
-            item.updated_at = nowIso;
+        if (row) {
+            row.queue_number = parsedNum;
+            row.updated_by = staff;
+            row.updated_at = nowIso;
         }
         renderTable();
     }
 
-    async function changeBookingStatus(id, selectEl) {
-        const newStatus = selectEl.value;
+    async function changeBookingStatus(id, newStatus) {
+        const row = allBookings.find(b => b.id === id);
         const staff = getStaffName();
+
+        if (row && row.locked_by && row.locked_by !== staff) {
+            alert(`لا يمكن تغيير الحالة؛ الحالة مستلمة بواسطة: ${row.locked_by}`);
+            renderTable();
+            return;
+        }
+
         const nowIso = new Date().toISOString();
-        selectEl.className = 'status-select ' + getStatusClass(newStatus);
 
         const { error } = await supabaseClient
             .from('clinic_bookings')
@@ -717,16 +777,15 @@
 
         if (error) {
             alert('تعذر تحديث حالة الحجز: ' + error.message);
-            fetchBookings();
+            fetchBookings(true);
             return;
         }
 
-        const item = allBookings.find(b => b.id === id);
-        if (item) {
-            item.status = newStatus;
-            item.updated_by = staff;
-            item.updated_at = nowIso;
-            item.locked_by = null;
+        if (row) {
+            row.status = newStatus;
+            row.updated_by = staff;
+            row.updated_at = nowIso;
+            row.locked_by = null;
         }
         updateStats();
         renderTable();
@@ -764,16 +823,13 @@
         link.click();
     }
 
-    // اشتراك لحظي لاستقبال أي إضافة أو تعديل من أي موظف آخر فوراً
-    supabaseClient
-        .channel('clinic_bookings_realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_bookings' }, () => {
-            fetchBookings(true);
-        })
-        .subscribe();
-
     getStaffName();
     fetchBookings();
+
+    // تحديث تلقائي كل ثانيتين
+    setInterval(() => {
+        fetchBookings(true);
+    }, 2000);
 </script>
 
 </body>
