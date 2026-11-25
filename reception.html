@@ -106,8 +106,8 @@
         }
 
         .live-pill {
-            background: #DCFCE7;
-            color: #166534;
+            background: #FFF0F1;
+            color: var(--primary-red);
             font-size: 0.8rem;
             font-weight: 800;
             padding: 4px 10px;
@@ -422,7 +422,7 @@
         <div class="staff-bar">
             <label for="staffName">اسم الموظف:</label>
             <input type="text" id="staffName" placeholder="اكتب اسمك..." oninput="saveStaffName()">
-            <span class="live-pill">تحديث لحظي موفر للباقة</span>
+            <span class="live-pill">جاري الربط اللحظي...</span>
             <span class="sync-meta" id="lastSyncTime">آخر تحديث: --:--:--</span>
         </div>
 
@@ -532,6 +532,20 @@
 
     let allBookings = [];
     let isUserInteracting = false;
+    const liveStatusEl = document.querySelector('.live-pill');
+
+    function setRealtimeBadge(state) {
+        if (!liveStatusEl) return;
+        if (state === 'SUBSCRIBED') {
+            liveStatusEl.textContent = 'لحظي سريع (Realtime متصل)';
+            liveStatusEl.style.background = '#DCFCE7';
+            liveStatusEl.style.color = '#166534';
+        } else {
+            liveStatusEl.textContent = 'تحديث يدوي / جاري الربط';
+            liveStatusEl.style.background = '#FFF0F1';
+            liveStatusEl.style.color = '#E30613';
+        }
+    }
 
     function getStaffName() {
         const input = document.getElementById('staffName');
@@ -874,31 +888,49 @@
         link.click();
     }
 
-    // تحديث تلقائي ذكي عند وصول حجز جديد أو تعديل صف بدون استعلام كامل دوري
+    function applyInsertFast(newRow) {
+        if (!newRow || !newRow.id) return;
+        if (allBookings.some(b => b.id === newRow.id)) return;
+
+        if (newRow.queue_number === null || newRow.queue_number === undefined || newRow.queue_number === '') {
+            const sameSlotCount = allBookings.filter(b =>
+                b.clinic === newRow.clinic &&
+                b.appointment_day === newRow.appointment_day &&
+                b.doctor_name === newRow.doctor_name
+            ).length;
+            newRow.queue_number = sameSlotCount + 1;
+        }
+
+        allBookings.unshift(newRow);
+        updateSyncClock();
+        updateStats();
+        showNewOrderToast(newRow.patient_name);
+        if (!isUserInteracting) renderTable();
+    }
+
+    function applyUpdateFast(updatedRow) {
+        if (!updatedRow || !updatedRow.id) return;
+        const idx = allBookings.findIndex(b => b.id === updatedRow.id);
+        if (idx === -1) return;
+
+        allBookings[idx] = { ...allBookings[idx], ...updatedRow };
+        updateSyncClock();
+        updateStats();
+        if (!isUserInteracting) renderTable();
+    }
+
+    // تحديث لحظي سريع عبر WebSocket بدون استعلام دوري يثقل الباقة المجانية
     supabaseClient
-        .channel('clinic_bookings_smart_sync')
+        .channel('clinic_bookings_fast_lane')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'clinic_bookings' }, (payload) => {
-            if (!payload.new) return;
-            const exists = allBookings.some(b => b.id === payload.new.id);
-            if (!exists) {
-                allBookings = assignQueueNumbers([payload.new, ...allBookings]);
-                updateSyncClock();
-                updateStats();
-                showNewOrderToast(payload.new.patient_name);
-                if (!isUserInteracting) renderTable();
-            }
+            applyInsertFast(payload.new);
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'clinic_bookings' }, (payload) => {
-            if (!payload.new) return;
-            const idx = allBookings.findIndex(b => b.id === payload.new.id);
-            if (idx !== -1) {
-                allBookings[idx] = { ...allBookings[idx], ...payload.new };
-                updateSyncClock();
-                updateStats();
-                if (!isUserInteracting) renderTable();
-            }
+            applyUpdateFast(payload.new);
         })
-        .subscribe();
+        .subscribe((status) => {
+            setRealtimeBadge(status);
+        });
 
     getStaffName();
     fetchBookings(false);
