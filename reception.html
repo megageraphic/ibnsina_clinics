@@ -112,6 +112,44 @@
             font-weight: 800;
             padding: 4px 10px;
             border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #16A34A;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulseAnim 1.2s infinite;
+        }
+
+        @keyframes pulseAnim {
+            0% { transform: scale(0.9); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+            100% { transform: scale(0.9); opacity: 1; }
+        }
+
+        .sync-meta {
+            font-size: 0.8rem;
+            color: #555;
+            font-weight: 700;
+        }
+
+        .new-order-toast {
+            display: none;
+            background: #EDFDF3;
+            color: #136F3A;
+            border: 1.5px solid #28A745;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-weight: 800;
+            font-size: 0.92rem;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .action-buttons {
@@ -401,13 +439,19 @@
         <div class="staff-bar">
             <label for="staffName">اسم الموظف:</label>
             <input type="text" id="staffName" placeholder="اكتب اسمك..." oninput="saveStaffName()">
-            <span class="live-pill">تحديث كل 2 ثانية</span>
+            <span class="live-pill"><span class="pulse-dot"></span>تحديث أوتوماتيك كل 2 ثانية</span>
+            <span class="sync-meta" id="lastSyncTime">آخر تحديث: --:--:--</span>
         </div>
 
         <div class="action-buttons">
-            <button class="btn btn-red" onclick="fetchBookings()">تحديث الآن</button>
+            <button class="btn btn-red" onclick="fetchBookings(false)">تحديث الآن</button>
             <button class="btn btn-black" onclick="exportToCSV()">تصدير Excel (CSV)</button>
         </div>
+    </div>
+
+    <div id="newOrderToast" class="new-order-toast">
+        <span id="newOrderText">تم استقبال حجز جديد!</span>
+        <button class="btn btn-black" style="padding: 5px 12px; font-size: 0.82rem;" onclick="hideNewOrderToast()">إخفاء</button>
     </div>
 
     <!-- الإحصائيات -->
@@ -504,7 +548,9 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allBookings = [];
-    let isEditingInput = false;
+    let isFirstLoad = true;
+    let isUserInteracting = false;
+    let pollTimer = null;
 
     function getStaffName() {
         const input = document.getElementById('staffName');
@@ -518,6 +564,29 @@
     function saveStaffName() {
         const val = document.getElementById('staffName').value.trim();
         localStorage.setItem('ibn_sina_staff_name', val);
+    }
+
+    function hideNewOrderToast() {
+        document.getElementById('newOrderToast').style.display = 'none';
+    }
+
+    function showNewOrderToast(latestPatientName) {
+        const toast = document.getElementById('newOrderToast');
+        const textEl = document.getElementById('newOrderText');
+        textEl.textContent = latestPatientName
+            ? `وصل حجز جديد للمريض: ${latestPatientName}`
+            : 'تم استقبال حجز جديد وتم تحديث الجدول تلقائياً!';
+        toast.style.display = 'flex';
+    }
+
+    function updateSyncClock() {
+        const nowStr = new Date().toLocaleTimeString('ar-EG', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+        document.getElementById('lastSyncTime').textContent = `آخر تحديث: ${nowStr}`;
     }
 
     function assignQueueNumbers(records) {
@@ -536,7 +605,7 @@
     }
 
     async function fetchBookings(silent = false) {
-        if (silent && isEditingInput) return;
+        if (silent && isUserInteracting) return;
 
         const tbody = document.getElementById('bookingsTableBody');
         if (!silent) {
@@ -556,7 +625,16 @@
             return;
         }
 
-        allBookings = assignQueueNumbers(data || []);
+        const freshData = assignQueueNumbers(data || []);
+
+        if (!isFirstLoad && freshData.length > allBookings.length) {
+            const newestRow = freshData[0];
+            showNewOrderToast(newestRow ? newestRow.patient_name : '');
+        }
+
+        allBookings = freshData;
+        isFirstLoad = false;
+        updateSyncClock();
         updateStats();
         renderTable();
     }
@@ -631,7 +709,7 @@
                 <td><strong>${row.appointment_time}</strong></td>
                 <td>${row.insurance_type}</td>
                 <td>
-                    <select class="status-select ${statusClass}" ${lockedByOther ? 'disabled' : ''} onchange="changeBookingStatus('${row.id}', this.value)">
+                    <select class="status-select ${statusClass}" ${lockedByOther ? 'disabled' : ''} onfocus="isUserInteracting=true" onblur="isUserInteracting=false" onchange="isUserInteracting=false; changeBookingStatus('${row.id}', this.value)">
                         <option value="قيد الانتظار" ${status === 'قيد الانتظار' ? 'selected' : ''}>قيد الانتظار</option>
                         <option value="تم التأكيد" ${status === 'تم التأكيد' ? 'selected' : ''}>تم التأكيد</option>
                         <option value="تم الكشف" ${status === 'تم الكشف' ? 'selected' : ''}>تم الكشف</option>
@@ -642,7 +720,7 @@
                 <td>
                     <div class="action-cell">
                         <span class="queue-badge">#${queueNum}</span>
-                        <input type="number" min="1" class="queue-input" value="${row.queue_number || ''}" ${lockedByOther ? 'disabled' : ''} onfocus="isEditingInput=true" onblur="isEditingInput=false" onchange="isEditingInput=false; updateQueueNumber('${row.id}', this.value)" title="رقم الحجز في الكشف">
+                        <input type="number" min="1" class="queue-input" value="${row.queue_number || ''}" ${lockedByOther ? 'disabled' : ''} onfocus="isUserInteracting=true" onblur="isUserInteracting=false" onchange="isUserInteracting=false; updateQueueNumber('${row.id}', this.value)" title="رقم الحجز في الكشف">
                         <button class="claim-btn ${isLockedByMe ? 'claimed-by-me' : ''}" ${lockedByOther ? 'disabled' : ''} onclick="toggleClaim('${row.id}', ${!isLockedByMe})">${isLockedByMe ? 'إلغاء الاستلام' : 'استلام'}</button>
                         <button class="confirm-btn" ${lockedByOther || status === 'تم التأكيد' ? 'disabled' : ''} onclick="confirmBooking('${row.id}')">${status === 'تم التأكيد' ? 'مؤكد ✓' : 'تأكيد'}</button>
                     </div>
@@ -823,11 +901,26 @@
         link.click();
     }
 
-    getStaffName();
-    fetchBookings();
+    // اشتراك لحظي لاستقبال الطلبات والتعديلات فور حدوثها
+    supabaseClient
+        .channel('clinic_bookings_auto_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_bookings' }, () => {
+            fetchBookings(true);
+        })
+        .subscribe();
 
-    // تحديث تلقائي كل ثانيتين
-    setInterval(() => {
+    // تحديث فوري عند العودة لتبويب المتصفح
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            fetchBookings(true);
+        }
+    });
+
+    getStaffName();
+    fetchBookings(false);
+
+    // تحديث تلقائي أوتوماتيك كل 2 ثانية لاستقبال الطلبات
+    pollTimer = setInterval(() => {
         fetchBookings(true);
     }, 2000);
 </script>
