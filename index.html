@@ -67,6 +67,18 @@
             border: 1px solid rgba(227, 6, 19, 0.2);
         }
 
+        .today-banner {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary-black);
+        }
+
+        .today-banner span {
+            color: var(--primary-red);
+            font-weight: 800;
+        }
+
         h2 {
             text-align: center;
             color: var(--primary-black);
@@ -199,9 +211,37 @@
             border: 1px solid #EAECEF;
         }
 
+        /* شريط الساعة واليوم والتاريخ أسفل الصفحة */
+        .live-datetime-bar {
+            margin-top: 15px;
+            padding: 12px 15px;
+            background-color: var(--primary-black);
+            color: #ffffff;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.92rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 3px solid var(--primary-red);
+        }
+
+        .live-datetime-bar .time-pill {
+            background-color: var(--primary-red);
+            color: #ffffff;
+            padding: 3px 12px;
+            border-radius: 6px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            direction: ltr;
+        }
+
         .footer-credit {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 18px;
             padding-top: 15px;
             border-top: 1px dashed #E0E0E0;
             font-size: 0.85rem;
@@ -236,6 +276,7 @@
     <div class="logo-header">
         <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
         <span class="badge-title">نظام حجز العيادات الخارجية</span>
+        <div class="today-banner">مواعيد عيادات اليوم: <span id="currentDayLabel">...</span></div>
     </div>
     
     <h2>استمارة تسجيل وحجز كشف</h2>
@@ -244,6 +285,9 @@
     <div id="successBox" class="alert-box success-alert"></div>
     
     <form id="bookingForm" action="#" method="POST" novalidate>
+        <!-- حقل مخفي يحفظ يوم فتح الموقع تلقائياً -->
+        <input type="hidden" id="day" name="day">
+
         <div class="form-group">
             <label for="fullName">اسم المريض بالكامل:<span class="req">*</span></label>
             <input type="text" id="fullName" name="fullName" required placeholder="أدخل الاسم ثلاثي أو رباعي">
@@ -261,38 +305,22 @@
             </div>
         </div>
 
-        <div class="row-split">
-            <div class="form-group">
-                <label for="clinic">العيادة المطلوبة:<span class="req">*</span></label>
-                <select id="clinic" name="clinic" required>
-                    <option value="" disabled selected>اختر العيادة...</option>
-                    <option value="عيادة الباطنة">عيادة الباطنة</option>
-                    <option value="عيادة الباطنة والكلى">عيادة الباطنة والكلى</option>
-                    <option value="عيادة الجهاز الهضمي والباطنة">عيادة الجهاز الهضمي والباطنة</option>
-                    <option value="عيادة العظام">عيادة العظام</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="day">اليوم:<span class="req">*</span></label>
-                <select id="day" name="day" required disabled>
-                    <option value="" disabled selected>اختر العيادة أولاً...</option>
-                    <option value="السبت">السبت</option>
-                    <option value="الأحد">الأحد</option>
-                    <option value="الاثنين">الاثنين</option>
-                    <option value="الثلاثاء">الثلاثاء</option>
-                    <option value="الأربعاء">الأربعاء</option>
-                    <option value="الخميس">الخميس</option>
-                    <option value="الجمعة">الجمعة</option>
-                </select>
-            </div>
+        <div class="form-group">
+            <label for="clinic">العيادة المطلوبة:<span class="req">*</span></label>
+            <select id="clinic" name="clinic" required>
+                <option value="" disabled selected>اختر العيادة...</option>
+                <option value="عيادة الباطنة">عيادة الباطنة</option>
+                <option value="عيادة الباطنة والكلى">عيادة الباطنة والكلى</option>
+                <option value="عيادة الجهاز الهضمي والباطنة">عيادة الجهاز الهضمي والباطنة</option>
+                <option value="عيادة العظام">عيادة العظام</option>
+            </select>
         </div>
 
         <div class="row-split">
             <div class="form-group">
-                <label for="doctor">الطبيب المتاح في هذا اليوم:<span class="req">*</span></label>
+                <label for="doctor">الطبيب المتاح اليوم:<span class="req">*</span></label>
                 <select id="doctor" name="doctor" required disabled>
-                    <option value="" disabled selected>اختر اليوم أولاً...</option>
+                    <option value="" disabled selected>اختر العيادة أولاً...</option>
                 </select>
             </div>
 
@@ -328,6 +356,15 @@
         <strong>للاستفسار والحجز المباشر:</strong> 01222243157 / 01222243156
     </div>
 
+    <!-- الساعة واليوم والتاريخ أسفل الصفحة -->
+    <div class="live-datetime-bar" id="liveDateTimeBar">
+        <span id="footerDay">...</span>
+        <span>|</span>
+        <span id="footerDate">...</span>
+        <span>|</span>
+        <span class="time-pill" id="footerTime">--:--:--</span>
+    </div>
+
     <div class="footer-credit">
         <a href="https://megagraphic.cloud" target="_blank">
             <img src="100.png" alt="Mega Graphic">
@@ -344,6 +381,40 @@
     const SUPABASE_URL = 'https://xktnvqeelonlhhoemvdo.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_fT5XWLhr9lsJ5v85PJSGuA_hA4eXR8b';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // تحديد يوم فتح الموقع تلقائياً (يطابق مفاتيح الأيام في الجدول)
+    const arabicDaysMap = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    function getTodayArabicName() {
+        return arabicDaysMap[new Date().getDay()];
+    }
+
+    // تحديث الساعة واليوم والتاريخ كل ثانية
+    function updateLiveClock() {
+        const now = new Date();
+        const todayName = arabicDaysMap[now.getDay()];
+
+        const dateStr = now.toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const timeStr = now.toLocaleTimeString('ar-EG', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+
+        document.getElementById('currentDayLabel').textContent = todayName;
+        document.getElementById('day').value = todayName;
+        document.getElementById('footerDay').textContent = 'اليوم: ' + todayName;
+        document.getElementById('footerDate').textContent = dateStr;
+        document.getElementById('footerTime').textContent = timeStr;
+    }
+
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
 
     // قاعدة بيانات العيادات والأطباء والمواعيد
     const clinicsSchedule = {
@@ -482,47 +553,38 @@
 
     const form = document.getElementById('bookingForm');
     const clinicSelect = document.getElementById('clinic');
-    const daySelect = document.getElementById('day');
+    const dayInput = document.getElementById('day');
     const doctorSelect = document.getElementById('doctor');
     const timeSelect = document.getElementById('timeSlot');
     const errorBox = document.getElementById('errorBox');
     const successBox = document.getElementById('successBox');
     const submitBtn = document.getElementById('submitBtn');
 
-    function resetDayDoctorTime(dayPlaceholder = 'اختر اليوم...') {
-        daySelect.selectedIndex = 0;
-        daySelect.options[0].textContent = dayPlaceholder;
-        doctorSelect.innerHTML = '<option value="" disabled selected>اختر اليوم أولاً...</option>';
+    function resetDoctorAndTime() {
+        doctorSelect.innerHTML = '<option value="" disabled selected>اختر العيادة أولاً...</option>';
         timeSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب أولاً...</option>';
         doctorSelect.disabled = true;
         timeSelect.disabled = true;
     }
 
-    // عند اختيار العيادة -> تفعيل اختيار اليوم
+    // عند اختيار العيادة -> عرض أطباء هذه العيادة المتاحين في يوم فتح الموقع تلقائياً
     clinicSelect.addEventListener('change', function() {
-        if (this.value) {
-            daySelect.disabled = false;
-            resetDayDoctorTime('اختر اليوم...');
-        }
-    });
-
-    // عند اختيار اليوم -> عرض كل أطباء العيادة المتاحين في هذا اليوم
-    daySelect.addEventListener('change', function() {
-        const selectedClinic = clinicSelect.value;
-        const selectedDay = this.value;
+        const selectedClinic = this.value;
+        const todayName = getTodayArabicName();
+        dayInput.value = todayName;
 
         doctorSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب...</option>';
         timeSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب أولاً...</option>';
         timeSelect.disabled = true;
 
-        if (!selectedClinic || !selectedDay || !clinicsSchedule[selectedClinic]) {
+        if (!selectedClinic || !clinicsSchedule[selectedClinic]) {
             doctorSelect.disabled = true;
             return;
         }
 
         const doctorsInClinic = clinicsSchedule[selectedClinic];
         const availableDoctors = Object.keys(doctorsInClinic).filter(docName => {
-            return Array.isArray(doctorsInClinic[docName][selectedDay]) && doctorsInClinic[docName][selectedDay].length > 0;
+            return Array.isArray(doctorsInClinic[docName][todayName]) && doctorsInClinic[docName][todayName].length > 0;
         });
 
         if (availableDoctors.length > 0) {
@@ -535,20 +597,20 @@
             });
         } else {
             doctorSelect.disabled = true;
-            doctorSelect.innerHTML = '<option value="" disabled selected>لا توجد مواعيد متاحة في هذا اليوم</option>';
+            doctorSelect.innerHTML = `<option value="" disabled selected>لا توجد عيادات متاحة اليوم (${todayName})</option>`;
         }
     });
 
-    // عند اختيار الطبيب -> عرض مواعيده في اليوم المحدد
+    // عند اختيار الطبيب -> عرض مواعيده في يوم فتح الموقع
     doctorSelect.addEventListener('change', function() {
         const selectedClinic = clinicSelect.value;
-        const selectedDay = daySelect.value;
+        const todayName = dayInput.value || getTodayArabicName();
         const selectedDoctor = this.value;
 
         timeSelect.innerHTML = '<option value="" disabled selected>اختر الموعد...</option>';
 
-        if (selectedClinic && selectedDay && selectedDoctor && clinicsSchedule[selectedClinic][selectedDoctor]?.[selectedDay]) {
-            const times = clinicsSchedule[selectedClinic][selectedDoctor][selectedDay];
+        if (selectedClinic && todayName && selectedDoctor && clinicsSchedule[selectedClinic][selectedDoctor]?.[todayName]) {
+            const times = clinicsSchedule[selectedClinic][selectedDoctor][todayName];
             timeSelect.disabled = false;
             times.forEach(t => {
                 const opt = document.createElement('option');
@@ -573,8 +635,9 @@
         const age = document.getElementById('age');
         const insurance = document.getElementById('insurance');
         const notes = document.getElementById('notes');
+        const todayName = dayInput.value || getTodayArabicName();
 
-        const requiredFields = [fullName, phone, age, clinicSelect, daySelect, doctorSelect, timeSelect, insurance];
+        const requiredFields = [fullName, phone, age, clinicSelect, doctorSelect, timeSelect, insurance];
         requiredFields.forEach(el => el.classList.remove('input-error'));
         errorBox.style.display = 'none';
         successBox.style.display = 'none';
@@ -595,14 +658,10 @@
             isValid = false;
             clinicSelect.classList.add('input-error');
             errorMessage = 'يرجى اختيار العيادة المطلوبة.';
-        } else if (daySelect.value === '') {
-            isValid = false;
-            daySelect.classList.add('input-error');
-            errorMessage = 'يرجى اختيار اليوم المناسب.';
         } else if (doctorSelect.value === '') {
             isValid = false;
             doctorSelect.classList.add('input-error');
-            errorMessage = 'يرجى اختيار الطبيب المتاح في هذا اليوم.';
+            errorMessage = `يرجى اختيار الطبيب المتاح اليوم (${todayName}).`;
         } else if (timeSelect.value === '') {
             isValid = false;
             timeSelect.classList.add('input-error');
@@ -629,7 +688,7 @@
             phone: phone.value.trim(),
             age: Number(age.value.trim()),
             clinic: clinicSelect.value,
-            appointment_day: daySelect.value,
+            appointment_day: todayName,
             doctor_name: doctorSelect.value,
             appointment_time: timeSelect.value,
             insurance_type: insurance.value,
@@ -651,12 +710,13 @@
             return;
         }
 
-        successBox.textContent = 'تم تسجيل حجزك بنجاح، وسيتواصل معك فريق الاستقبال لتأكيد الموعد.';
+        successBox.textContent = `تم تسجيل حجزك ليوم ${todayName} بنجاح، وسيتواصل معك فريق الاستقبال لتأكيد الموعد.`;
         successBox.style.display = 'block';
         successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         form.reset();
-        resetDayDoctorTime('اختر العيادة أولاً...');
+        dayInput.value = getTodayArabicName();
+        resetDoctorAndTime();
     });
 </script>
 
