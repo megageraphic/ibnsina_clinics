@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>حجز العيادات - عيادات مستشفى ابن سينا التخصصية</title>
-    <!-- استدعاء خط Cairo -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -89,6 +88,36 @@
 
         .form-group {
             margin-bottom: 18px;
+        }
+
+        .label-with-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .label-with-badge label {
+            margin-bottom: 0;
+        }
+
+        .lock-badge-red {
+            display: none;
+            background-color: #E30613;
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 999px;
+            line-height: 1.5;
+        }
+
+        .lock-badge-red.visible {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         label {
@@ -211,7 +240,6 @@
             border: 1px solid #EAECEF;
         }
 
-        /* شريط الساعة واليوم والتاريخ أسفل الصفحة */
         .live-datetime-bar {
             margin-top: 15px;
             padding: 12px 15px;
@@ -285,7 +313,6 @@
     <div id="successBox" class="alert-box success-alert"></div>
     
     <form id="bookingForm" action="#" method="POST" novalidate>
-        <!-- حقل مخفي يحفظ يوم فتح الموقع تلقائياً -->
         <input type="hidden" id="day" name="day">
 
         <div class="form-group">
@@ -309,23 +336,25 @@
             <label for="clinic">العيادة المطلوبة:<span class="req">*</span></label>
             <select id="clinic" name="clinic" required>
                 <option value="" disabled selected>اختر العيادة...</option>
-                <option value="عيادة الباطنة">عيادة الباطنة</option>
-                <option value="عيادة الباطنة والكلى">عيادة الباطنة والكلى</option>
-                <option value="عيادة الجهاز الهضمي والباطنة">عيادة الجهاز الهضمي والباطنة</option>
-                <option value="عيادة العظام">عيادة العظام</option>
             </select>
         </div>
 
         <div class="row-split">
             <div class="form-group">
-                <label for="doctor">الطبيب المتاح اليوم:<span class="req">*</span></label>
+                <div class="label-with-badge">
+                    <label for="doctor">الطبيب المتاح اليوم:<span class="req">*</span></label>
+                    <span id="doctorLockBadge" class="lock-badge-red">🔒 قفل الحجز</span>
+                </div>
                 <select id="doctor" name="doctor" required disabled>
                     <option value="" disabled selected>اختر العيادة أولاً...</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="timeSlot">الموعد:<span class="req">*</span></label>
+                <div class="label-with-badge">
+                    <label for="timeSlot">الموعد:<span class="req">*</span></label>
+                    <span id="slotLockBadge" class="lock-badge-red">🔒 قفل الحجز</span>
+                </div>
                 <select id="timeSlot" name="timeSlot" required disabled>
                     <option value="" disabled selected>اختر الطبيب أولاً...</option>
                 </select>
@@ -356,7 +385,6 @@
         <strong>للاستفسار والحجز المباشر:</strong> 01222243157 / 01222243156
     </div>
 
-    <!-- الساعة واليوم والتاريخ أسفل الصفحة -->
     <div class="live-datetime-bar" id="liveDateTimeBar">
         <span id="footerDay">...</span>
         <span>|</span>
@@ -366,58 +394,30 @@
     </div>
 
     <div class="footer-credit">
-        <a href="https://megagraphic.cloud" target="_blank">
+        <a href="https://megacraphic.cloud" target="_blank">
             <img src="100.png" alt="Mega Graphic">
             <span>تصميم وتطوير ميجا جيرافيك | 01010255123</span>
         </a>
     </div>
 </div>
 
-<!-- مكتبة Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    // إعدادات Supabase لمشروع عيادات مستشفى ابن سينا
     const SUPABASE_URL = 'https://xktnvqeelonlhhoemvdo.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_fT5XWLhr9lsJ5v85PJSGuA_hA4eXR8b';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // تحديد يوم فتح الموقع تلقائياً (يطابق مفاتيح الأيام في الجدول)
-    const arabicDaysMap = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-    function getTodayArabicName() {
-        return arabicDaysMap[new Date().getDay()];
-    }
+    const STORAGE_SCHEDULE_KEY = 'ibn_sina_custom_clinics_schedule';
+    const STORAGE_LIMITS_KEY = 'ibn_sina_custom_doctor_limits';
+    const STORAGE_APOLOGIES_KEY = 'ibn_sina_doctor_apologies';
 
-    // تحديث الساعة واليوم والتاريخ كل ثانية
-    function updateLiveClock() {
-        const now = new Date();
-        const todayName = arabicDaysMap[now.getDay()];
+    const DEFAULT_SLOT_LIMIT_DOCTORS = {
+        "د/ خالد السحار": 5,
+        "د/ ماريا": 5
+    };
 
-        const dateStr = now.toLocaleDateString('ar-EG', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-
-        const timeStr = now.toLocaleTimeString('ar-EG', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        });
-
-        document.getElementById('currentDayLabel').textContent = todayName;
-        document.getElementById('day').value = todayName;
-        document.getElementById('footerDay').textContent = 'اليوم: ' + todayName;
-        document.getElementById('footerDate').textContent = dateStr;
-        document.getElementById('footerTime').textContent = timeStr;
-    }
-
-    updateLiveClock();
-    setInterval(updateLiveClock, 1000);
-
-    // قاعدة بيانات العيادات والأطباء والمواعيد
-    const clinicsSchedule = {
+    const DEFAULT_CLINICS_SCHEDULE = {
         "عيادة الباطنة": {
             "د/ خالد السحار": {
                 "السبت": ["9:30 مساءً"],
@@ -551,6 +551,9 @@
         }
     };
 
+    let todayBookingsCountBySlot = {};
+    const arabicDaysMap = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
     const form = document.getElementById('bookingForm');
     const clinicSelect = document.getElementById('clinic');
     const dayInput = document.getElementById('day');
@@ -560,16 +563,189 @@
     const successBox = document.getElementById('successBox');
     const submitBtn = document.getElementById('submitBtn');
 
+    function getTodayArabicName() {
+        return arabicDaysMap[new Date().getDay()];
+    }
+
+    function getActiveSchedule() {
+        try {
+            const raw = localStorage.getItem(STORAGE_SCHEDULE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+                    return parsed;
+                }
+            }
+        } catch (e) {}
+        return DEFAULT_CLINICS_SCHEDULE;
+    }
+
+    function isDoctorApologized(clinicName, docName, dayName = '') {
+        try {
+            const apologies = JSON.parse(localStorage.getItem(STORAGE_APOLOGIES_KEY) || '{}');
+            const activeDay = dayName || dayInput.value || getTodayArabicName();
+            return Boolean(
+                apologies[`${clinicName}__${docName}`] ||
+                (activeDay && apologies[`${clinicName}__${docName}__${activeDay}`])
+            );
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function getDoctorSlotLimit(docName, clinicName = '', dayName = '') {
+        const activeClinic = clinicName || clinicSelect.value || '';
+        const activeDay = dayName || dayInput.value || getTodayArabicName();
+        try {
+            const custom = JSON.parse(localStorage.getItem(STORAGE_LIMITS_KEY) || '{}');
+            const candidateKeys = [
+                `${activeClinic}__${docName}__${activeDay}`,
+                `${docName}__${activeDay}`,
+                docName
+            ];
+            for (const key of candidateKeys) {
+                if (Object.prototype.hasOwnProperty.call(custom, key)) {
+                    const val = Number(custom[key]);
+                    return val > 0 ? val : null;
+                }
+            }
+        } catch (e) {}
+        return DEFAULT_SLOT_LIMIT_DOCTORS[docName] ?? null;
+    }
+
+    function isSlotLockedToday(docName, timeSlot, clinicName = '', dayName = '') {
+        const limit = getDoctorSlotLimit(docName, clinicName, dayName);
+        if (!limit || !timeSlot) return false;
+        const key = `${docName}__${timeSlot}`;
+        const currentCount = todayBookingsCountBySlot[key] || 0;
+        return currentCount >= limit;
+    }
+
+    function areAllDoctorSlotsLockedToday(clinicName, docName, dayName) {
+        const schedule = getActiveSchedule();
+        const limit = getDoctorSlotLimit(docName, clinicName, dayName);
+        if (!limit) return false;
+        const times = schedule[clinicName]?.[docName]?.[dayName] || [];
+        if (times.length === 0) return false;
+        return times.every(t => isSlotLockedToday(docName, t, clinicName, dayName));
+    }
+
+    function updateLockIndicators() {
+        const selectedClinic = clinicSelect.value;
+        const todayName = dayInput.value || getTodayArabicName();
+        const docName = doctorSelect.value;
+        const timeVal = timeSelect.value;
+
+        const docBadge = document.getElementById('doctorLockBadge');
+        const slotBadge = document.getElementById('slotLockBadge');
+
+        if (docBadge) {
+            if (selectedClinic && docName && areAllDoctorSlotsLockedToday(selectedClinic, docName, todayName)) {
+                docBadge.textContent = '🔒 قفل الحجز';
+                docBadge.classList.add('visible');
+            } else {
+                docBadge.classList.remove('visible');
+            }
+        }
+
+        if (slotBadge) {
+            if (docName && timeVal && isSlotLockedToday(docName, timeVal, selectedClinic, todayName)) {
+                slotBadge.textContent = '🔒 قفل الحجز';
+                slotBadge.classList.add('visible');
+            } else {
+                slotBadge.classList.remove('visible');
+            }
+        }
+    }
+
     function resetDoctorAndTime() {
         doctorSelect.innerHTML = '<option value="" disabled selected>اختر العيادة أولاً...</option>';
         timeSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب أولاً...</option>';
         doctorSelect.disabled = true;
         timeSelect.disabled = true;
+        updateLockIndicators();
     }
 
-    // عند اختيار العيادة -> عرض أطباء هذه العيادة المتاحين في يوم فتح الموقع تلقائياً
-    clinicSelect.addEventListener('change', function() {
-        const selectedClinic = this.value;
+    function syncClinicSelectOptions(keepSelectedClinic = '') {
+        const schedule = getActiveSchedule();
+        const clinicNames = Object.keys(schedule || {});
+        const prevValue = keepSelectedClinic || clinicSelect.value;
+
+        clinicSelect.innerHTML = '';
+
+        const placeholderOpt = document.createElement('option');
+        placeholderOpt.value = '';
+        placeholderOpt.disabled = true;
+        placeholderOpt.selected = true;
+        placeholderOpt.textContent = 'اختر العيادة...';
+        clinicSelect.appendChild(placeholderOpt);
+
+        let foundSelected = false;
+        clinicNames.forEach(clinicName => {
+            const opt = document.createElement('option');
+            opt.value = clinicName;
+            opt.textContent = clinicName;
+            if (prevValue && prevValue === clinicName) {
+                opt.selected = true;
+                placeholderOpt.selected = false;
+                foundSelected = true;
+            }
+            clinicSelect.appendChild(opt);
+        });
+
+        if (!foundSelected) {
+            resetDoctorAndTime();
+        }
+    }
+
+    function populateTimeSlotsForDoctor(docName, keepSelectedTime = '') {
+        const schedule = getActiveSchedule();
+        const selectedClinic = clinicSelect.value;
+        const todayName = dayInput.value || getTodayArabicName();
+
+        timeSelect.innerHTML = '<option value="" disabled selected>اختر الموعد...</option>';
+
+        if (!docName || !selectedClinic || isDoctorApologized(selectedClinic, docName, todayName) || !schedule[selectedClinic]?.[docName]?.[todayName]) {
+            timeSelect.disabled = true;
+            updateLockIndicators();
+            return;
+        }
+
+        const times = schedule[selectedClinic][docName][todayName];
+        const allLocked = areAllDoctorSlotsLockedToday(selectedClinic, docName, todayName);
+
+        if (allLocked) {
+            timeSelect.innerHTML = '<option value="" disabled selected>مغلق لاكتمال الحجز اليوم</option>';
+            timeSelect.disabled = true;
+            updateLockIndicators();
+            return;
+        }
+
+        timeSelect.disabled = false;
+        times.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            const slotLocked = isSlotLockedToday(docName, t, selectedClinic, todayName);
+
+            if (slotLocked) {
+                opt.textContent = `${t} — 🔴 قفل الحجز`;
+                opt.disabled = true;
+            } else {
+                opt.textContent = t;
+            }
+
+            if (keepSelectedTime && keepSelectedTime === t && !slotLocked) {
+                opt.selected = true;
+            }
+            timeSelect.appendChild(opt);
+        });
+
+        updateLockIndicators();
+    }
+
+    function populateDoctorsForSelectedClinic(keepSelectedDoc = '', keepSelectedTime = '') {
+        const schedule = getActiveSchedule();
+        const selectedClinic = clinicSelect.value;
         const todayName = getTodayArabicName();
         dayInput.value = todayName;
 
@@ -577,53 +753,195 @@
         timeSelect.innerHTML = '<option value="" disabled selected>اختر الطبيب أولاً...</option>';
         timeSelect.disabled = true;
 
-        if (!selectedClinic || !clinicsSchedule[selectedClinic]) {
+        if (!selectedClinic || !schedule[selectedClinic]) {
             doctorSelect.disabled = true;
+            updateLockIndicators();
             return;
         }
 
-        const doctorsInClinic = clinicsSchedule[selectedClinic];
+        const doctorsInClinic = schedule[selectedClinic];
         const availableDoctors = Object.keys(doctorsInClinic).filter(docName => {
-            return Array.isArray(doctorsInClinic[docName][todayName]) && doctorsInClinic[docName][todayName].length > 0;
+            return Array.isArray(doctorsInClinic[docName]?.[todayName]) && doctorsInClinic[docName][todayName].length > 0;
         });
 
         if (availableDoctors.length > 0) {
             doctorSelect.disabled = false;
+            let matchedDoc = '';
+
             availableDoctors.forEach(doc => {
                 const opt = document.createElement('option');
                 opt.value = doc;
-                opt.textContent = doc;
+                const apologized = isDoctorApologized(selectedClinic, doc, todayName);
+                const allSlotsLocked = areAllDoctorSlotsLockedToday(selectedClinic, doc, todayName);
+
+                if (apologized) {
+                    opt.textContent = `${doc} — 🚫 معتذر عن الحضور اليوم`;
+                    opt.disabled = true;
+                } else if (allSlotsLocked) {
+                    opt.textContent = `${doc} — 🔴 قفل الحجز`;
+                    opt.disabled = true;
+                } else {
+                    opt.textContent = doc;
+                }
+
+                if (keepSelectedDoc && keepSelectedDoc === doc && !apologized && !allSlotsLocked) {
+                    opt.selected = true;
+                    matchedDoc = doc;
+                }
+
                 doctorSelect.appendChild(opt);
             });
+
+            if (matchedDoc) {
+                populateTimeSlotsForDoctor(matchedDoc, keepSelectedTime);
+            }
         } else {
             doctorSelect.disabled = true;
             doctorSelect.innerHTML = `<option value="" disabled selected>لا توجد عيادات متاحة اليوم (${todayName})</option>`;
         }
+
+        updateLockIndicators();
+    }
+
+    function applyLatestScheduleToUI() {
+        const prevClinic = clinicSelect.value;
+        const prevDoc = doctorSelect.value;
+        const prevTime = timeSelect.value;
+
+        syncClinicSelectOptions(prevClinic);
+
+        if (clinicSelect.value) {
+            populateDoctorsForSelectedClinic(prevDoc, prevTime);
+        } else {
+            resetDoctorAndTime();
+        }
+        updateLockIndicators();
+    }
+
+    async function syncSettingsFromSupabase() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('clinic_settings')
+                .select('schedule_json, limits_json, apologies_json')
+                .eq('id', 'main_schedule_config')
+                .maybeSingle();
+
+            if (!error && data && data.schedule_json) {
+                localStorage.setItem(STORAGE_SCHEDULE_KEY, JSON.stringify(data.schedule_json));
+                localStorage.setItem(STORAGE_LIMITS_KEY, JSON.stringify(data.limits_json || {}));
+                localStorage.setItem(STORAGE_APOLOGIES_KEY, JSON.stringify(data.apologies_json || {}));
+            }
+        } catch (e) {}
+
+        applyLatestScheduleToUI();
+    }
+
+    async function refreshTodaySlotCounts() {
+        const todayName = getTodayArabicName();
+        const { data, error } = await supabaseClient
+            .from('clinic_bookings')
+            .select('doctor_name, appointment_time, status')
+            .eq('appointment_day', todayName);
+
+        if (error) {
+            console.warn('Could not refresh today slot counts:', error.message);
+            return;
+        }
+
+        const counts = {};
+        (data || []).forEach(row => {
+            if (row.status === 'ملغي') return;
+            const doc = row.doctor_name;
+            const slot = row.appointment_time;
+            if (!doc || !slot) return;
+            const key = `${doc}__${slot}`;
+            counts[key] = (counts[key] || 0) + 1;
+        });
+
+        todayBookingsCountBySlot = counts;
+        applyLatestScheduleToUI();
+    }
+
+    function updateLiveClock() {
+        const now = new Date();
+        const todayName = arabicDaysMap[now.getDay()];
+
+        const dateStr = now.toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const timeStr = now.toLocaleTimeString('ar-EG', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+
+        document.getElementById('currentDayLabel').textContent = todayName;
+        document.getElementById('day').value = todayName;
+        document.getElementById('footerDay').textContent = 'اليوم: ' + todayName;
+        document.getElementById('footerDate').textContent = dateStr;
+        document.getElementById('footerTime').textContent = timeStr;
+    }
+
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
+
+    clinicSelect.addEventListener('change', function() {
+        populateDoctorsForSelectedClinic('', '');
     });
 
-    // عند اختيار الطبيب -> عرض مواعيده في يوم فتح الموقع
     doctorSelect.addEventListener('change', function() {
-        const selectedClinic = clinicSelect.value;
-        const todayName = dayInput.value || getTodayArabicName();
         const selectedDoctor = this.value;
+        errorBox.style.display = 'none';
+        populateTimeSlotsForDoctor(selectedDoctor, '');
+    });
 
-        timeSelect.innerHTML = '<option value="" disabled selected>اختر الموعد...</option>';
+    timeSelect.addEventListener('change', function() {
+        const selectedDoctor = doctorSelect.value;
+        const selectedSlot = this.value;
+        updateLockIndicators();
 
-        if (selectedClinic && todayName && selectedDoctor && clinicsSchedule[selectedClinic][selectedDoctor]?.[todayName]) {
-            const times = clinicsSchedule[selectedClinic][selectedDoctor][todayName];
-            timeSelect.disabled = false;
-            times.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t;
-                opt.textContent = t;
-                timeSelect.appendChild(opt);
-            });
+        if (isSlotLockedToday(selectedDoctor, selectedSlot, clinicSelect.value, dayInput.value)) {
+            errorBox.textContent = `عذراً، تم قفل الحجز على موعد (${selectedSlot}) للطبيب ${selectedDoctor}.`;
+            errorBox.style.display = 'block';
         } else {
-            timeSelect.disabled = true;
+            errorBox.style.display = 'none';
         }
     });
 
-    // التحقق من اكتمال جميع الخانات وحفظ الحجز في Supabase
+    window.addEventListener('storage', function(event) {
+        if (
+            event.key === STORAGE_SCHEDULE_KEY ||
+            event.key === STORAGE_LIMITS_KEY ||
+            event.key === STORAGE_APOLOGIES_KEY
+        ) {
+            applyLatestScheduleToUI();
+            refreshTodaySlotCounts();
+        }
+    });
+
+    supabaseClient
+        .channel('ibn_sina_schedule_sync')
+        .on('broadcast', { event: 'schedule_updated' }, (payload) => {
+            if (payload?.payload?.schedule) {
+                localStorage.setItem(STORAGE_SCHEDULE_KEY, JSON.stringify(payload.payload.schedule));
+                localStorage.setItem(STORAGE_LIMITS_KEY, JSON.stringify(payload.payload.limits || {}));
+                localStorage.setItem(STORAGE_APOLOGIES_KEY, JSON.stringify(payload.payload.apologies || {}));
+            }
+            applyLatestScheduleToUI();
+            refreshTodaySlotCounts();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_settings' }, () => {
+            syncSettingsFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_bookings' }, () => {
+            refreshTodaySlotCounts();
+        })
+        .subscribe();
+
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -662,10 +980,19 @@
             isValid = false;
             doctorSelect.classList.add('input-error');
             errorMessage = `يرجى اختيار الطبيب المتاح اليوم (${todayName}).`;
+        } else if (isDoctorApologized(clinicSelect.value, doctorSelect.value, todayName)) {
+            isValid = false;
+            doctorSelect.classList.add('input-error');
+            errorMessage = `عذراً، الطبيب ${doctorSelect.value} معتذر عن الحضور اليوم.`;
         } else if (timeSelect.value === '') {
             isValid = false;
             timeSelect.classList.add('input-error');
             errorMessage = 'يرجى اختيار موعد الكشف.';
+        } else if (isSlotLockedToday(doctorSelect.value, timeSelect.value, clinicSelect.value, todayName)) {
+            isValid = false;
+            timeSelect.classList.add('input-error');
+            updateLockIndicators();
+            errorMessage = `تم قفل الحجز على موعد (${timeSelect.value}) للطبيب ${doctorSelect.value}.`;
         } else if (insurance.value === '') {
             isValid = false;
             insurance.classList.add('input-error');
@@ -682,6 +1009,26 @@
         submitBtn.disabled = true;
         const originalBtnText = submitBtn.textContent;
         submitBtn.textContent = 'جاري تسجيل الحجز...';
+
+        await syncSettingsFromSupabase();
+        await refreshTodaySlotCounts();
+
+        if (isDoctorApologized(clinicSelect.value, doctorSelect.value, todayName)) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            errorBox.textContent = `عذراً، الطبيب ${doctorSelect.value} معتذر عن الحضور اليوم.`;
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        if (isSlotLockedToday(doctorSelect.value, timeSelect.value, clinicSelect.value, todayName)) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            errorBox.textContent = `تم قفل الحجز على موعد (${timeSelect.value}) للطبيب ${doctorSelect.value}.`;
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
 
         const payload = {
             patient_name: fullName.value.trim(),
@@ -716,8 +1063,16 @@
 
         form.reset();
         dayInput.value = getTodayArabicName();
+        syncClinicSelectOptions('');
         resetDoctorAndTime();
+        await refreshTodaySlotCounts();
     });
+
+    (async function initPage() {
+        syncClinicSelectOptions('');
+        await syncSettingsFromSupabase();
+        await refreshTodaySlotCounts();
+    })();
 </script>
 
 </body>

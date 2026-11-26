@@ -514,11 +514,76 @@
             height: 22px;
             vertical-align: middle;
         }
+    
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 17, 17, 0.78);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9999;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 410px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+            text-align: center;
+        }
+        .auth-card img { height: 54px; width: auto; margin-bottom: 10px; }
+        .auth-card h2 { margin: 0 0 6px 0; font-size: 1.2rem; font-weight: 800; color: var(--primary-black); }
+        .auth-card p { margin: 0 0 18px 0; font-size: 0.86rem; color: #666; font-weight: 600; }
+        .auth-field { text-align: right; margin-bottom: 14px; }
+        .auth-field label { display: block; font-size: 0.86rem; font-weight: 800; margin-bottom: 6px; color: var(--primary-black); }
+        .auth-field input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 0.94rem; font-weight: 700; outline: none; }
+        .auth-field input:focus { border-color: var(--primary-red); }
+        .auth-error { display: none; background: #FEE2E2; color: var(--primary-red); font-size: 0.84rem; font-weight: 800; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
+        .btn-login { width: 100%; background: var(--primary-red); color: #ffffff; border: none; padding: 11px 16px; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+        .btn-logout { background: #F3F4F6; color: var(--primary-black); border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
+
+<div class="auth-overlay" id="authOverlay" style="display:none;">
+    <form class="auth-card" onsubmit="handleLoginSubmit(event, 'reception_booking')">
+        <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+        <h2>تسجيل الدخول للاستقبال والانتظار</h2>
+        <p>أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة الاستقبال</p>
+        <div class="auth-field">
+            <label for="loginUsername">اسم المستخدم</label>
+            <input type="text" id="loginUsername" autocomplete="username" required>
+        </div>
+        <div class="auth-field">
+            <label for="loginPassword">كلمة المرور</label>
+            <input type="password" id="loginPassword" autocomplete="current-password" required>
+        </div>
+        <div class="auth-error" id="authError">اسم المستخدم أو كلمة المرور غير صحيحة</div>
+        <button type="submit" class="btn-login">دخول</button>
+    </form>
+</div>
+
+<div class="auth-overlay" id="accessDeniedBox" style="display:none;">
+    <div class="auth-card">
+        <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+        <h2>غير مصرح بالوصول</h2>
+        <p id="accessDeniedMsg">هذا الحساب لا يملك صلاحية فتح هذه الصفحة.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <a href="index.html" class="btn-login" style="text-decoration:none; display:inline-block; width:auto;">العودة لبوابة الدخول</a>
+            <button type="button" class="btn-logout" onclick="logoutAuth('reception_booking')">تبديل الحساب</button>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-container" id="mainDashboard" style="display:none;">
     <div class="header-bar">
         <div class="brand-box">
             <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
@@ -538,6 +603,7 @@
         <div class="action-buttons">
             <button class="btn btn-red" onclick="fetchBookings(false)">تحديث الآن</button>
             <button class="btn btn-black" onclick="exportToCSV()">تصدير Excel (CSV)</button>
+            <button type="button" class="btn-logout" onclick="logoutAuth('reception_booking')">خروج</button>
         </div>
     </div>
 
@@ -1185,10 +1251,171 @@
             setRealtimeBadge(status);
         });
 
-    setInterval(checkMidnightAutoPurge, 30000);
-    syncWaitingButtonState();
-    getStaffName();
-    fetchBookings(false);
+
+    const PORTAL_USERS_KEY = 'ibn_sina_portal_users_v1';
+    const PORTAL_SESSION_KEY = 'ibn_sina_portal_active_session_v1';
+    const SETTINGS_DOC_ID = 'main_schedule_config';
+
+    const DEFAULT_ADMIN_ACCOUNT = {
+        id: 'user_admin_default',
+        name: 'مدير النظام (الأدمن)',
+        username: 'admin',
+        password: '987',
+        role: 'admin',
+        permissions: ['bookings_count', 'schedule_manager', 'reception_booking']
+    };
+
+    function getPortalUsersCached() {
+        try {
+            const raw = localStorage.getItem(PORTAL_USERS_KEY);
+            const arr = raw ? JSON.parse(raw) : [];
+            const list = Array.isArray(arr) ? arr.filter(u => u && u.username) : [];
+            if (!list.some(u => u.username.toLowerCase() === 'admin')) {
+                list.unshift(DEFAULT_ADMIN_ACCOUNT);
+            }
+            return list;
+        } catch (e) {
+            return [DEFAULT_ADMIN_ACCOUNT];
+        }
+    }
+
+    async function refreshPortalUsersFromDb() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('clinic_settings')
+                .select('apologies_json')
+                .eq('id', SETTINGS_DOC_ID)
+                .maybeSingle();
+
+            if (!error && data && data.apologies_json && Array.isArray(data.apologies_json.__portal_users)) {
+                const list = data.apologies_json.__portal_users.filter(u => u && u.username);
+                if (!list.some(u => u.username.toLowerCase() === 'admin')) {
+                    list.unshift(DEFAULT_ADMIN_ACCOUNT);
+                }
+                localStorage.setItem(PORTAL_USERS_KEY, JSON.stringify(list));
+                return list;
+            }
+        } catch (e) {}
+        return getPortalUsersCached();
+    }
+
+    function getCurrentPortalUser() {
+        try {
+            const raw = sessionStorage.getItem(PORTAL_SESSION_KEY);
+            if (!raw) return null;
+            const sess = JSON.parse(raw);
+            const users = getPortalUsersCached();
+            return users.find(u => u.id === sess.id || u.username === sess.username) || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function userHasPagePermission(user, permKey) {
+        if (!user) return false;
+        if (user.role === 'admin') return true;
+        return Array.isArray(user.permissions) && user.permissions.includes(permKey);
+    }
+
+    function applyPageGuardUI(requiredPermKey) {
+        const user = getCurrentPortalUser();
+        const allowed = userHasPagePermission(user, requiredPermKey);
+
+        const overlay = document.getElementById('authOverlay');
+        const dashboard = document.getElementById('mainDashboard') || document.querySelector('.dashboard-container') || document.querySelector('.container');
+        const deniedBox = document.getElementById('accessDeniedBox');
+        const deniedMsg = document.getElementById('accessDeniedMsg');
+
+        if (!user) {
+            if (overlay) overlay.style.display = 'flex';
+            if (dashboard) dashboard.style.display = 'none';
+            if (deniedBox) deniedBox.style.display = 'none';
+            return { authenticated: false, allowed: false, user: null };
+        }
+
+        if (!allowed) {
+            if (overlay) overlay.style.display = 'none';
+            if (dashboard) dashboard.style.display = 'none';
+            if (deniedBox) deniedBox.style.display = 'flex';
+            if (deniedMsg) {
+                deniedMsg.textContent = `الحساب (${user.name} - ${user.username}) لا يملك صلاحية الوصول إلى هذه الصفحة.`;
+            }
+            return { authenticated: true, allowed: false, user };
+        }
+
+        if (overlay) overlay.style.display = 'none';
+        if (dashboard) dashboard.style.display = 'block';
+        if (deniedBox) deniedBox.style.display = 'none';
+
+        const staffInput = document.getElementById('staffName');
+        if (staffInput && !staffInput.value.trim()) {
+            staffInput.value = user.name || user.username;
+            if (typeof saveStaffName === 'function') saveStaffName();
+        }
+
+        return { authenticated: true, allowed: true, user };
+    }
+
+    async function handleLoginSubmit(event, requiredPermKey) {
+        event.preventDefault();
+        const u = (document.getElementById('loginUsername')?.value || '').trim();
+        const p = (document.getElementById('loginPassword')?.value || '').trim();
+        const errEl = document.getElementById('authError');
+
+        await refreshPortalUsersFromDb();
+        const users = getPortalUsersCached();
+        const matched = users.find(item =>
+            item.username.toLowerCase() === u.toLowerCase() &&
+            String(item.password) === p
+        );
+
+        if (!matched) {
+            if (errEl) {
+                errEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+
+        if (!userHasPagePermission(matched, requiredPermKey)) {
+            if (errEl) {
+                errEl.textContent = 'هذا الحساب غير مصرح له بالدخول إلى هذه الصفحة';
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+
+        sessionStorage.setItem(PORTAL_SESSION_KEY, JSON.stringify({
+            id: matched.id,
+            username: matched.username
+        }));
+        if (errEl) errEl.style.display = 'none';
+        applyPageGuardUI(requiredPermKey);
+        if (typeof syncSettingsFromSupabase === 'function' && typeof loadCounts === 'function') {
+            await syncSettingsFromSupabase();
+            await loadCounts();
+        } else if (typeof fetchBookings === 'function') {
+            await fetchBookings(false);
+        }
+    }
+
+    function logoutAuth(requiredPermKey) {
+        sessionStorage.removeItem(PORTAL_SESSION_KEY);
+        const pInput = document.getElementById('loginPassword');
+        if (pInput) pInput.value = '';
+        applyPageGuardUI(requiredPermKey);
+    }
+
+    (async function initReceptionGuard() {
+        await refreshPortalUsersFromDb();
+        const state = applyPageGuardUI('reception_booking');
+        setInterval(checkMidnightAutoPurge, 30000);
+        syncWaitingButtonState();
+        getStaffName();
+        if (state.authenticated && state.allowed) {
+            fetchBookings(false);
+        }
+    })();
 </script>
 
 </body>

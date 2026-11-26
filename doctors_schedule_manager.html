@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة الأطباء والمواعيد والاعتذارات - عيادات مستشفى ابن سينا التخصصية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-red: #E30613;
+            --dark-red: #B8000B;
+            --primary-black: #111111;
+            --bg-light: #F4F5F7;
+            --border-color: #DCDFE4;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-black);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 18px;
+            border-bottom: 2px solid #F0F0F0;
+            margin-bottom: 20px;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-box img {
+            height: 58px;
+            width: auto;
+        }
+
+        .brand-title h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .brand-title span {
+            display: inline-block;
+            background: #FFF0F1;
+            color: var(--primary-red);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 15px;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .clock-box {
+            background: var(--primary-black);
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            border-bottom: 3px solid var(--primary-red);
+            direction: ltr;
+        }
+
+        .sync-status {
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #DCFCE7;
+            color: #166534;
+        }
+
+        .btn {
+            padding: 9px 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-red {
+            background: var(--primary-red);
+            color: #fff;
+        }
+
+        .btn-red:hover {
+            background: var(--dark-red);
+        }
+
+        .btn-black {
+            background: var(--primary-black);
+            color: #fff;
+        }
+
+        .btn-black:hover {
+            background: #333;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: var(--primary-black);
+            border: 1.5px solid #CBD5E1;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-red);
+        }
+
+        .save-toast {
+            display: none;
+            background: #EDFDF3;
+            color: #136F3A;
+            border: 1.5px solid #28A745;
+            padding: 11px 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+
+        .specialties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .specialty-card {
+            background: #FAFAFA;
+            border: 2px solid #E5E7EB;
+            border-radius: 14px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .specialty-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-red);
+        }
+
+        .specialty-card.active {
+            background: #FFF0F1;
+            border-color: var(--primary-red);
+            box-shadow: 0 4px 14px rgba(227, 6, 19, 0.14);
+        }
+
+        .specialty-icon-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .specialty-badge {
+            background: #111111;
+            color: #ffffff;
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .specialty-card.active .specialty-badge {
+            background: var(--primary-red);
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #F0F0F0;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .add-doctor-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .add-doctor-bar input {
+            padding: 8px 12px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            min-width: 220px;
+        }
+
+        .doctors-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .doctor-card {
+            background: #FFFFFF;
+            border: 1.5px solid #E2E5EA;
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .doctor-card.apology-active {
+            border-color: var(--primary-red);
+            background: #FFF9FA;
+        }
+
+        .doctor-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #E2E5EA;
+            margin-bottom: 14px;
+        }
+
+        .doctor-identity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .doctor-name-input {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--primary-black);
+            border: 1.5px solid transparent;
+            background: #F8FAFC;
+            padding: 5px 10px;
+            border-radius: 8px;
+            min-width: 210px;
+        }
+
+        .doctor-name-input:focus {
+            border-color: var(--primary-red);
+            background: #fff;
+            outline: none;
+        }
+
+        .apology-status-tag {
+            display: none;
+            background: var(--primary-red);
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 3px 11px;
+            border-radius: 999px;
+        }
+
+        .apology-status-tag.visible {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .limit-status-tag {
+            background: #FEF3C7;
+            color: #92400E;
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .doctor-controls-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .limit-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #F9FAFB;
+            border: 1px solid #DCDFE4;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .limit-box input {
+            width: 64px;
+            padding: 4px 6px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 7px;
+            font-weight: 800;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .day-limit-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            border-radius: 8px;
+            padding: 5px 8px;
+            margin-top: 8px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .day-limit-inline.has-limit {
+            background: #FFFBEB;
+            border-color: #F59E0B;
+            color: #92400E;
+        }
+
+        .day-limit-input {
+            width: 66px;
+            padding: 3px 6px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-align: center;
+            background: #ffffff;
+            color: #111111;
+        }
+
+        .day-limit-input:focus {
+            border-color: var(--primary-red);
+            outline: none;
+        }
+
+        .apology-btn {
+            background: #FFF0F1;
+            color: var(--primary-red);
+            border: 1.5px solid var(--primary-red);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .apology-btn.active {
+            background: var(--primary-red);
+            color: #ffffff;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .day-slot-box {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .day-slot-box.has-slots {
+            border-color: #CBD5E1;
+            background: #FFFFFF;
+        }
+
+        .day-slot-box.apology-day-box {
+            border-color: var(--primary-red);
+            background: #FFF5F6;
+        }
+
+        .day-slot-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .day-slot-box input[type="text"] {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            background: #ffffff;
+        }
+
+        .day-slot-box input[type="text"]:focus {
+            border-color: var(--primary-red);
+            outline: none;
+        }
+
+        .slot-hint {
+            font-size: 0.74rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .doctor-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #E5E7EB;
+        }
+
+        .clinic-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 17, 17, 0.72);
+            backdrop-filter: blur(3px);
+            z-index: 9998;
+            padding: 20px;
+            overflow-y: auto;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clinic-modal-backdrop.open {
+            display: flex;
+        }
+
+        .clinic-modal-card {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 22px 24px;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.25);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+        }
+
+        .clinic-modal-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .clinic-modal-card p {
+            margin: 0 0 14px 0;
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .clinic-modal-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 10px;
+            font-size: 0.94rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .clinic-modal-input:focus {
+            border-color: var(--primary-red);
+            outline: none;
+        }
+
+        .clinic-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .footer-credit {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 15px;
+            border-top: 1px dashed #E0E0E0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .footer-credit a {
+            color: var(--primary-black);
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-credit img {
+            height: 22px;
+            vertical-align: middle;
+        }
+
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 17, 17, 0.78);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9999;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 410px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+            text-align: center;
+        }
+        .auth-card img { height: 54px; width: auto; margin-bottom: 10px; }
+        .auth-card h2 { margin: 0 0 6px 0; font-size: 1.2rem; font-weight: 800; color: var(--primary-black); }
+        .auth-card p { margin: 0 0 18px 0; font-size: 0.86rem; color: #666; font-weight: 600; }
+        .auth-field { text-align: right; margin-bottom: 14px; }
+        .auth-field label { display: block; font-size: 0.86rem; font-weight: 800; margin-bottom: 6px; color: var(--primary-black); }
+        .auth-field input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 0.94rem; font-weight: 700; outline: none; }
+        .auth-field input:focus { border-color: var(--primary-red); }
+        .auth-error { display: none; background: #FEE2E2; color: var(--primary-red); font-size: 0.84rem; font-weight: 800; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
+        .btn-login { width: 100%; background: var(--primary-red); color: #ffffff; border: none; padding: 11px 16px; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+        .btn-logout { background: #F3F4F6; color: var(--primary-black); border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="auth-overlay" id="authOverlay" style="display:none;">
+    <form class="auth-card" onsubmit="handleLoginSubmit(event, 'schedule_manager')">
+        <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+        <h2>تسجيل الدخول لإدارة المواعيد</h2>
+        <p>أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة إدارة الأطباء والمواعيد</p>
+        <div class="auth-field">
+            <label for="loginUsername">اسم المستخدم</label>
+            <input type="text" id="loginUsername" autocomplete="username" required>
+        </div>
+        <div class="auth-field">
+            <label for="loginPassword">كلمة المرور</label>
+            <input type="password" id="loginPassword" autocomplete="current-password" required>
+        </div>
+        <div class="auth-error" id="authError">اسم المستخدم أو كلمة المرور غير صحيحة</div>
+        <button type="submit" class="btn-login">دخول</button>
+    </form>
+</div>
+
+<div class="auth-overlay" id="accessDeniedBox" style="display:none;">
+    <div class="auth-card">
+        <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+        <h2>غير مصرح بالوصول</h2>
+        <p id="accessDeniedMsg">هذا الحساب لا يملك صلاحية فتح هذه الصفحة.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <a href="home.html" class="btn-login" style="text-decoration:none; display:inline-block; width:auto;">العودة للرئيسية (home)</a>
+            <button type="button" class="btn-logout" onclick="logoutAuth('schedule_manager')">تبديل الحساب</button>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="mainDashboard" style="display:none;">
+    <div class="header-bar">
+        <div class="brand-box">
+            <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+            <div class="brand-title">
+                <h1>إدارة مواعيد الأطباء والاعتذارات والحدود</h1>
+                <span>عيادات مستشفى ابن سينا التخصصية - تسميع مباشر في صفحة الحجز</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <span class="sync-status" id="syncStatusPill">متصل </span>
+            <div class="clock-box" id="liveClockBox">--:--:--</div>
+            <button type="button" class="btn btn-outline" onclick="openAddClinicModal()">🏥 إضافة عيادة جديدة</button>
+            <button type="button" class="btn btn-outline" onclick="goTopAndHome()" title="الرجوع لأعلى الصفحة والانتقال للرئيسية (home)">⬆ الرئيسية</button>
+            <button type="button" class="btn btn-red" onclick="saveAllChanges()">حفظ الكل وتحديث الحجز</button>
+        </div>
+    </div>
+
+    <div id="saveToast" class="save-toast">تم حفظ التعديلات وتسميعها في صفحة الحجز فوراً!</div>
+
+    <div class="specialties-grid" id="specialtiesGrid"></div>
+
+    <div class="section-heading">
+        <h2 id="selectedSpecialtyTitle">أطباء التخصص</h2>
+        <div class="add-doctor-bar">
+            <button type="button" class="btn btn-outline" onclick="openAddClinicModal()">🏥 إضافة عيادة جديدة</button>
+            <input type="text" id="newDoctorNameInput" placeholder="اسم دكتور جديد في هذا التخصص...">
+            <button type="button" class="btn btn-black" onclick="addNewDoctorToSpecialty()">+ إضافة دكتور</button>
+        </div>
+    </div>
+
+    <div class="doctors-list" id="doctorsContainer"></div>
+
+    <div class="footer-credit">
+        <a href="https://megacraphic.cloud" target="_blank">
+            <img src="100.png" alt="Mega Graphic">
+            <span>تصميم وتطوير ميجا جيرافيك | 01010255123</span>
+        </a>
+    </div>
+</div>
+
+<div class="clinic-modal-backdrop" id="addClinicModalBackdrop" onclick="handleClinicBackdropClick(event)">
+    <div class="clinic-modal-card" onclick="event.stopPropagation()">
+        <h3>🏥 إضافة عيادة جديدة</h3>
+        <p>أدخل اسم العيادة الجديدة ليتم إضافتها وتحديدها ومزامنتها فوراً.</p>
+        <form onsubmit="submitAddNewClinic(event)">
+            <input type="text" id="newClinicNameInput" class="clinic-modal-input" placeholder="مثال: عيادة الأسنان" required>
+            <div class="clinic-modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeAddClinicModal()">إلغاء</button>
+                <button type="submit" class="btn btn-red">حفظ العيادة</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = 'https://xktnvqeelonlhhoemvdo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_fT5XWLhr9lsJ5v85PJSGuA_hA4eXR8b';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const STORAGE_SCHEDULE_KEY = 'ibn_sina_custom_clinics_schedule';
+    const STORAGE_LIMITS_KEY = 'ibn_sina_custom_doctor_limits';
+    const STORAGE_APOLOGIES_KEY = 'ibn_sina_doctor_apologies';
+    const SETTINGS_DOC_ID = 'main_schedule_config';
+
+    const DEFAULT_CLINICS_SCHEDULE = {
+        "عيادة الباطنة": {
+            "د/ خالد السحار": {
+                "السبت": ["9:30 مساءً"],
+                "الأحد": ["9:30 مساءً"],
+                "الاثنين": ["2:30 ظهراً", "9:30 مساءً"],
+                "الثلاثاء": ["2:30 ظهراً", "9:30 مساءً"],
+                "الأربعاء": ["2:30 ظهراً", "9:30 مساءً"],
+                "الخميس": ["3:00 عصراً", "9:30 مساءً"]
+            },
+            "د/ ماريا": {
+                "السبت": ["9:30 صباحاً"],
+                "الثلاثاء": ["9:30 صباحاً"],
+                "الأربعاء": ["9:30 صباحاً"],
+                "الخميس": ["9:30 صباحاً"]
+            },
+            "د/ أمجد صبحي": {
+                "الخميس": ["1:30 ظهراً"]
+            },
+            "د/ صبحي صديق": {
+                "السبت": ["11:00 صباحاً"],
+                "الأربعاء": ["12:00 ظهراً"]
+            },
+            "د/ رضا المنسي": {
+                "الأحد": ["4:00 عصراً"],
+                "الأربعاء": ["4:00 عصراً"]
+            },
+            "د/ أحمد عبد الفتاح": {
+                "الأحد": ["7:00 مساءً"],
+                "الثلاثاء": ["7:00 مساءً"]
+            },
+            "د/ عبد النبي السيد": {
+                "الثلاثاء": ["9:30 صباحاً"]
+            }
+        },
+        "عيادة الباطنة والكلى": {
+            "د/ محمد سلامة": {
+                "السبت": ["2:30 مساءً"],
+                "الاثنين": ["2:30 مساءً"]
+            },
+            "د/ آيات نصر": {
+                "الاثنين": ["2:00 مساءً"],
+                "الخميس": ["4:00 مساءً"]
+            },
+            "د/ لطفي أبو العنين": {
+                "الأربعاء": ["10:00 صباحاً"]
+            },
+            "د/ محمد الهجرسي": {
+                "السبت": ["3:00 مساءً"],
+                "الأربعاء": ["9:00 مساءً"]
+            }
+        },
+        "عيادة الجهاز الهضمي والباطنة": {
+            "د/ رفقه محسن": {
+                "الأحد": ["10:00 صباحاً"],
+                "الاثنين": ["11:00 صباحاً"]
+            },
+            "د/ شريف سويلم": {
+                "السبت": ["5:00 مساءً"],
+                "الأحد": ["12:00 ظهراً", "5:00 مساءً"],
+                "الاثنين": ["5:30 مساءً"],
+                "الثلاثاء": ["1:30 ظهراً", "5:00 مساءً"],
+                "الأربعاء": ["5:00 مساءً"],
+                "الخميس": ["11:00 صباحاً", "5:00 مساءً"]
+            },
+            "د/ أحمد فؤاد": {
+                "الأحد": ["7:00 مساءً"],
+                "الثلاثاء": ["6:00 مساءً"],
+                "الخميس": ["5:30 مساءً"],
+                "الجمعة": ["1:00 ظهراً"]
+            },
+            "د/ وئام إبراهيم": {
+                "الخميس": ["10:00 صباحاً"]
+            }
+        },
+        "عيادة العظام": {
+            "د/ محمد رخا": {
+                "الأحد": ["1:00 ظهراً"]
+            },
+            "د/ كريم خطاب": {
+                "الثلاثاء": ["9:30 صباحاً"],
+                "الخميس": ["9:30 صباحاً"]
+            },
+            "د/ محمد عفيفي": {
+                "الأحد": ["3:00 عصراً"]
+            },
+            "د/ أحمد خطاب": {
+                "السبت": ["1:00 ظهراً"],
+                "الثلاثاء": ["12:00 ظهراً"],
+                "الأربعاء": ["12:00 ظهراً"]
+            },
+            "د/ عمر علي": {
+                "الاثنين": ["4:00 عصراً"]
+            },
+            "د/ عمرو الدرس": {
+                "السبت": ["9:30 مساءً"],
+                "الثلاثاء": ["8:30 مساءً"],
+                "الأربعاء": ["11:00 صباحاً"]
+            },
+            "د/ محمد فتحي درويش": {
+                "السبت": ["8:00 مساءً"],
+                "الاثنين": ["3:00 عصراً"]
+            },
+            "د/ محمود الخولي": {
+                "الأحد": ["9:30 مساءً"]
+            },
+            "د/ أحمد عبد الغني صبرة": {
+                "الاثنين": ["10:00 صباحاً"]
+            },
+            "د/ محمد عبد الغفار": {
+                "السبت": ["11:00 صباحاً", "3:00 عصراً"],
+                "الاثنين": ["11:00 صباحاً"],
+                "الثلاثاء": ["3:00 عصراً"],
+                "الأربعاء": ["3:00 عصراً"],
+                "الخميس": ["11:00 صباحاً", "3:00 عصراً"],
+                "الجمعة": ["1:30 ظهراً"]
+            },
+            "د/ محمد رأفت": {
+                "الأربعاء": ["6:00 مساءً"],
+                "الخميس": ["6:00 مساءً"]
+            },
+            "د/ أحمد عبد السلام": {
+                "الأحد": ["5:00 مساءً"],
+                "الأربعاء": ["9:00 مساءً"]
+            },
+            "د/ ياسين الغول": {
+                "الأحد": ["9:30 صباحاً"],
+                "الاثنين": ["8:00 مساءً"],
+                "الخميس": ["8:00 مساءً"]
+            }
+        }
+    };
+
+    const SPECIALTY_ICONS = {
+        "عيادة الباطنة": "🩺",
+        "عيادة الباطنة والكلى": "🫀",
+        "عيادة الجهاز الهضمي والباطنة": "🏥",
+        "عيادة العظام": "🦴"
+    };
+
+    const ALL_DAYS = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+    const DEFAULT_LIMITS = { "د/ خالد السحار": 5, "د/ ماريا": 5 };
+
+    let currentSchedule = loadScheduleFromStorage();
+    let currentLimits = loadLimitsFromStorage();
+    let currentApologies = loadApologiesFromStorage();
+    let activeSpecialty = Object.keys(currentSchedule)[0];
+
+    function loadScheduleFromStorage() {
+        try {
+            const raw = localStorage.getItem(STORAGE_SCHEDULE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(DEFAULT_CLINICS_SCHEDULE));
+    }
+
+    function loadLimitsFromStorage() {
+        try {
+            const raw = localStorage.getItem(STORAGE_LIMITS_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return { ...DEFAULT_LIMITS };
+    }
+
+    function loadApologiesFromStorage() {
+        try {
+            const raw = localStorage.getItem(STORAGE_APOLOGIES_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return {};
+    }
+
+    function isDayApologized(specialty, docName, day) {
+        return Boolean(currentApologies[`${specialty}__${docName}__${day}`] || currentApologies[`${specialty}__${docName}`]);
+    }
+
+    function hasAnyApologyForDoctor(specialty, docName) {
+        if (currentApologies[`${specialty}__${docName}`]) return true;
+        return ALL_DAYS.some(day => Boolean(currentApologies[`${specialty}__${docName}__${day}`]));
+    }
+
+    function getDayLimitValue(specialty, docName, day) {
+        const dayKey = `${specialty}__${docName}__${day}`;
+        if (Object.prototype.hasOwnProperty.call(currentLimits, dayKey)) {
+            return currentLimits[dayKey];
+        }
+        const docOnlyDayKey = `${docName}__${day}`;
+        if (Object.prototype.hasOwnProperty.call(currentLimits, docOnlyDayKey)) {
+            return currentLimits[docOnlyDayKey];
+        }
+        if (Object.prototype.hasOwnProperty.call(currentLimits, docName)) {
+            return currentLimits[docName];
+        }
+        return '';
+    }
+
+    function getDoctorSummaryLimit(specialty, docName) {
+        if (Object.prototype.hasOwnProperty.call(currentLimits, docName) && Number(currentLimits[docName]) > 0) {
+            return Number(currentLimits[docName]);
+        }
+        for (const day of ALL_DAYS) {
+            const val = Number(getDayLimitValue(specialty, docName, day));
+            if (val > 0) return val;
+        }
+        return null;
+    }
+
+    async function persistAndBroadcast(reasonText) {
+        localStorage.setItem(STORAGE_SCHEDULE_KEY, JSON.stringify(currentSchedule));
+        localStorage.setItem(STORAGE_LIMITS_KEY, JSON.stringify(currentLimits));
+        localStorage.setItem(STORAGE_APOLOGIES_KEY, JSON.stringify(currentApologies));
+
+        const toast = document.getElementById('saveToast');
+        if (toast) {
+            toast.textContent = reasonText || 'تم حفظ التعديلات وتسميعها في صفحة الحجز فوراً!';
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2800);
+        }
+
+        try {
+            await supabaseClient
+                .from('clinic_settings')
+                .upsert({
+                    id: SETTINGS_DOC_ID,
+                    schedule_json: currentSchedule,
+                    limits_json: currentLimits,
+                    apologies_json: currentApologies,
+                    updated_at: new Date().toISOString()
+                });
+        } catch (e) {}
+
+        supabaseClient.channel('ibn_sina_schedule_sync').send({
+            type: 'broadcast',
+            event: 'schedule_updated',
+            payload: {
+                schedule: currentSchedule,
+                limits: currentLimits,
+                apologies: currentApologies,
+                updatedAt: Date.now()
+            }
+        }).catch(() => {});
+    }
+
+    async function syncInitialFromSupabase() {
+        try {
+            const { data } = await supabaseClient
+                .from('clinic_settings')
+                .select('schedule_json, limits_json, apologies_json')
+                .eq('id', SETTINGS_DOC_ID)
+                .maybeSingle();
+
+            if (data && data.schedule_json) {
+                currentSchedule = data.schedule_json;
+                currentLimits = data.limits_json || currentLimits;
+                currentApologies = data.apologies_json || currentApologies;
+                if (!Object.prototype.hasOwnProperty.call(currentSchedule, activeSpecialty)) {
+                    activeSpecialty = Object.keys(currentSchedule)[0] || '';
+                }
+                localStorage.setItem(STORAGE_SCHEDULE_KEY, JSON.stringify(currentSchedule));
+                localStorage.setItem(STORAGE_LIMITS_KEY, JSON.stringify(currentLimits));
+                localStorage.setItem(STORAGE_APOLOGIES_KEY, JSON.stringify(currentApologies));
+                renderSpecialties();
+                renderDoctorsForSpecialty();
+            }
+        } catch (e) {}
+    }
+
+    function renderSpecialties() {
+        const grid = document.getElementById('specialtiesGrid');
+        const specialties = Object.keys(currentSchedule);
+        grid.innerHTML = '';
+
+        specialties.forEach(spec => {
+            const docCount = Object.keys(currentSchedule[spec] || {}).length;
+            const icon = SPECIALTY_ICONS[spec] || '🏥';
+            const card = document.createElement('div');
+            card.className = `specialty-card ${spec === activeSpecialty ? 'active' : ''}`;
+            card.onclick = () => {
+                activeSpecialty = spec;
+                renderSpecialties();
+                renderDoctorsForSpecialty();
+            };
+            card.innerHTML = `
+                <div class="specialty-icon-title">
+                    <span style="font-size:1.4rem;">${icon}</span>
+                    <span>${spec}</span>
+                </div>
+                <span class="specialty-badge">${docCount} أطباء</span>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function sanitizeKey(str) {
+        return str.replace(/[^a-zA-Z0-9؀-ۿ]/g, '_');
+    }
+
+    function renderDoctorsForSpecialty() {
+        const container = document.getElementById('doctorsContainer');
+        const titleEl = document.getElementById('selectedSpecialtyTitle');
+        titleEl.textContent = `أطباء ${activeSpecialty}`;
+
+        const doctorsObj = currentSchedule[activeSpecialty] || {};
+        const docNames = Object.keys(doctorsObj);
+
+        if (docNames.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:24px; color:#666;">لا يوجد أطباء مسجلون في هذا القسم. يمكنك إضافة دكتور جديد من الأعلى.</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+        docNames.forEach(docName => {
+            const docKey = `${activeSpecialty}__${docName}`;
+            const safeDocKey = sanitizeKey(docKey);
+            const docSchedule = doctorsObj[docName] || {};
+            const anyApology = hasAnyApologyForDoctor(activeSpecialty, docName);
+            const limitVal = currentLimits[docName] ?? '';
+            const summaryLimit = getDoctorSummaryLimit(activeSpecialty, docName);
+
+            const escapedSpec = activeSpecialty.replace(/'/g, "\\'");
+            const escapedDoc = docName.replace(/'/g, "\\'");
+
+            const card = document.createElement('div');
+            card.className = `doctor-card ${anyApology ? 'apology-active' : ''}`;
+
+            const daysHtml = ALL_DAYS.map(day => {
+                const slotsArr = Array.isArray(docSchedule[day]) ? docSchedule[day] : [];
+                const slotsJoined = slotsArr.join('، ');
+                const inputId = `slot_${safeDocKey}_${sanitizeKey(day)}`;
+                const dayLimitInputId = `day_limit_${safeDocKey}_${sanitizeKey(day)}`;
+                const dayLimitVal = getDayLimitValue(activeSpecialty, docName, day);
+                const hasDayLimit = dayLimitVal !== '' && Number(dayLimitVal) > 0;
+                const dayApologized = isDayApologized(activeSpecialty, docName, day);
+                const escapedDay = day.replace(/'/g, "\\'");
+
+                return `
+                    <div class="day-slot-box ${slotsArr.length ? 'has-slots' : ''} ${dayApologized ? 'apology-day-box' : ''}">
+                        <div class="day-slot-header">
+                            <span>${day}</span>
+                            <span style="font-size:0.76rem; color:${dayApologized ? '#E30613' : (slotsArr.length ? '#E30613' : '#777')};">
+                                ${dayApologized ? '🚫 معتذر' : (slotsArr.length ? `${slotsArr.length} موعد` : 'إجازة')}
+                            </span>
+                        </div>
+                        <input type="text" id="${inputId}" value="${slotsJoined}" placeholder="مثال: 9:30 مساءً">
+                        <div class="slot-hint">أكثر من موعد: افصل بـ (،)</div>
+                        <div class="day-limit-inline ${hasDayLimit ? 'has-limit' : ''}" title="اكتب حد الحجوزات لهذا اليوم">
+                            <label for="${dayLimitInputId}">🎯 حد الحجوزات:</label>
+                            <input type="number" min="0" id="${dayLimitInputId}" class="day-limit-input" value="${dayLimitVal}" placeholder="مفتوح">
+                        </div>
+                        <button type="button" class="apology-btn ${dayApologized ? 'active' : ''}" onclick="toggleDayApology('${escapedSpec}', '${escapedDoc}', '${escapedDay}')">
+                            ${dayApologized ? '✅ إلغاء الاعتذار (متاح)' : '🚫 اعتذار لعدم الحضور'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            const limitInputId = `limit_${safeDocKey}`;
+            const nameInputId = `name_${safeDocKey}`;
+
+            card.innerHTML = `
+                <div class="doctor-top-row">
+                    <div class="doctor-identity">
+                        <input type="text" id="${nameInputId}" class="doctor-name-input" value="${docName}" title="يمكنك تعديل اسم الطبيب">
+                        <span class="apology-status-tag ${anyApology ? 'visible' : ''}">🚫 يوجد اعتذار</span>
+                        ${summaryLimit ? `<span class="limit-status-tag">الحد المحدد: ${summaryLimit} حالات</span>` : ''}
+                    </div>
+                    <div class="doctor-controls-right">
+                        <div class="limit-box">
+                            <label for="${limitInputId}">العدد المحدد:</label>
+                            <input type="number" min="0" id="${limitInputId}" value="${limitVal}" placeholder="مفتوح">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="days-grid">
+                    ${daysHtml}
+                </div>
+
+                <div class="doctor-card-footer">
+                    <button type="button" class="btn btn-outline" style="color:#E30613; border-color:#FECACA;" onclick="deleteDoctorFromSpecialty('${escapedSpec}', '${escapedDoc}')">حذف الطبيب</button>
+                    <button type="button" class="btn btn-black" onclick="saveSingleDoctor('${escapedSpec}', '${escapedDoc}')">حفظ وتسميع في الحجز</button>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+    }
+
+    function parseSlotsInput(rawVal) {
+        if (!rawVal || !rawVal.trim()) return [];
+        return rawVal
+            .split(/[,،]/)
+            .map(s => s.trim())
+            .filter(Boolean);
+    }
+
+    function readDoctorFormValues(specialty, docName) {
+        const docKey = `${specialty}__${docName}`;
+        const safeDocKey = sanitizeKey(docKey);
+        const updatedDays = {};
+        const dayLimits = {};
+
+        ALL_DAYS.forEach(day => {
+            const inputEl = document.getElementById(`slot_${safeDocKey}_${sanitizeKey(day)}`);
+            const slots = inputEl ? parseSlotsInput(inputEl.value) : (currentSchedule[specialty]?.[docName]?.[day] || []);
+            if (slots.length > 0) {
+                updatedDays[day] = slots;
+            }
+
+            const dayLimEl = document.getElementById(`day_limit_${safeDocKey}_${sanitizeKey(day)}`);
+            if (dayLimEl) {
+                const rawDayLim = dayLimEl.value.trim();
+                dayLimits[day] = rawDayLim === '' ? null : Number(rawDayLim);
+            }
+        });
+
+        const limitInput = document.getElementById(`limit_${safeDocKey}`);
+        const rawLimit = limitInput ? limitInput.value.trim() : '';
+        const parsedLimit = rawLimit === '' ? null : Number(rawLimit);
+
+        const nameInput = document.getElementById(`name_${safeDocKey}`);
+        const newDocName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : docName;
+
+        return { updatedDays, parsedLimit, dayLimits, newDocName };
+    }
+
+    function migrateDoctorApologies(specialty, oldName, newName) {
+        const oldDocKey = `${specialty}__${oldName}`;
+        const newDocKey = `${specialty}__${newName}`;
+        if (currentApologies[oldDocKey]) {
+            currentApologies[newDocKey] = true;
+            delete currentApologies[oldDocKey];
+        }
+        ALL_DAYS.forEach(day => {
+            const oldDayKey = `${specialty}__${oldName}__${day}`;
+            const newDayKey = `${specialty}__${newName}__${day}`;
+            if (currentApologies[oldDayKey]) {
+                currentApologies[newDayKey] = true;
+                delete currentApologies[oldDayKey];
+            }
+        });
+    }
+
+    function applyDoctorLimitsToState(specialty, oldDocName, newDocName, parsedLimit, dayLimits) {
+        delete currentLimits[oldDocName];
+        delete currentLimits[newDocName];
+        ALL_DAYS.forEach(day => {
+            delete currentLimits[`${specialty}__${oldDocName}__${day}`];
+            delete currentLimits[`${oldDocName}__${day}`];
+            delete currentLimits[`${specialty}__${newDocName}__${day}`];
+            delete currentLimits[`${newDocName}__${day}`];
+        });
+
+        if (parsedLimit && parsedLimit > 0) {
+            currentLimits[newDocName] = parsedLimit;
+        }
+
+        ALL_DAYS.forEach(day => {
+            const dVal = dayLimits[day];
+            const k = `${specialty}__${newDocName}__${day}`;
+            if (dVal !== undefined && dVal !== null && dVal > 0) {
+                currentLimits[k] = dVal;
+            } else if (parsedLimit && parsedLimit > 0) {
+                currentLimits[k] = parsedLimit;
+            }
+        });
+    }
+
+    async function saveSingleDoctor(specialty, docName) {
+        const { updatedDays, parsedLimit, dayLimits, newDocName } = readDoctorFormValues(specialty, docName);
+
+        if (newDocName !== docName) {
+            delete currentSchedule[specialty][docName];
+            migrateDoctorApologies(specialty, docName, newDocName);
+        }
+
+        currentSchedule[specialty][newDocName] = updatedDays;
+        applyDoctorLimitsToState(specialty, docName, newDocName, parsedLimit, dayLimits);
+
+        renderSpecialties();
+        renderDoctorsForSpecialty();
+        await persistAndBroadcast(`تم حفظ بيانات (${newDocName}) وحدود الأيام وتسميعها في الحجز فوراً!`);
+    }
+
+    async function saveAllChanges() {
+        const docNames = Object.keys(currentSchedule[activeSpecialty] || {});
+        docNames.forEach(docName => {
+            const { updatedDays, parsedLimit, dayLimits, newDocName } = readDoctorFormValues(activeSpecialty, docName);
+            if (newDocName !== docName) {
+                delete currentSchedule[activeSpecialty][docName];
+                migrateDoctorApologies(activeSpecialty, docName, newDocName);
+            }
+            currentSchedule[activeSpecialty][newDocName] = updatedDays;
+            applyDoctorLimitsToState(activeSpecialty, docName, newDocName, parsedLimit, dayLimits);
+        });
+
+        renderSpecialties();
+        renderDoctorsForSpecialty();
+        await persistAndBroadcast('تم حفظ جميع التعديلات وحدود الأيام والاعتذارات وتسميعها في الحجز!');
+    }
+
+    async function toggleDayApology(specialty, docName, day) {
+        const docKey = `${specialty}__${docName}`;
+        const dayKey = `${specialty}__${docName}__${day}`;
+
+        if (currentApologies[docKey]) {
+            delete currentApologies[docKey];
+            ALL_DAYS.forEach(d => {
+                if (d !== day) currentApologies[`${specialty}__${docName}__${d}`] = true;
+            });
+            renderDoctorsForSpecialty();
+            await persistAndBroadcast(`تم إلغاء اعتذار (${docName}) ليوم ${day} وإتاحته في صفحة الحجز.`);
+            return;
+        }
+
+        const nextState = !Boolean(currentApologies[dayKey]);
+        if (nextState) {
+            currentApologies[dayKey] = true;
+        } else {
+            delete currentApologies[dayKey];
+        }
+
+        renderDoctorsForSpecialty();
+        await persistAndBroadcast(
+            nextState
+                ? `تم تسجيل اعتذار (${docName}) ليوم ${day} وتسميعه في صفحة الحجز.`
+                : `تم إلغاء اعتذار (${docName}) ليوم ${day} وإتاحته في صفحة الحجز.`
+        );
+    }
+
+    async function addNewDoctorToSpecialty() {
+        const input = document.getElementById('newDoctorNameInput');
+        const name = input.value.trim();
+        if (!name) {
+            alert('يرجى كتابة اسم الطبيب أولاً.');
+            return;
+        }
+        if (!currentSchedule[activeSpecialty]) {
+            currentSchedule[activeSpecialty] = {};
+        }
+        if (currentSchedule[activeSpecialty][name]) {
+            alert('هذا الطبيب موجود بالفعل في هذا التخصص.');
+            return;
+        }
+        currentSchedule[activeSpecialty][name] = {};
+        input.value = '';
+        renderSpecialties();
+        renderDoctorsForSpecialty();
+        await persistAndBroadcast(`تمت إضافة (${name}) إلى ${activeSpecialty}.`);
+    }
+
+    async function deleteDoctorFromSpecialty(specialty, docName) {
+        if (!confirm(`هل أنت متأكد من حذف ${docName} من ${specialty}؟`)) return;
+        delete currentSchedule[specialty][docName];
+        delete currentApologies[`${specialty}__${docName}`];
+        ALL_DAYS.forEach(day => {
+            delete currentApologies[`${specialty}__${docName}__${day}`];
+            delete currentLimits[`${specialty}__${docName}__${day}`];
+            delete currentLimits[`${docName}__${day}`];
+        });
+        delete currentLimits[docName];
+        renderSpecialties();
+        renderDoctorsForSpecialty();
+        await persistAndBroadcast(`تم حذف (${docName}) وتحديث صفحة الحجز.`);
+    }
+
+    function openAddClinicModal() {
+        const modal = document.getElementById('addClinicModalBackdrop');
+        const input = document.getElementById('newClinicNameInput');
+        if (modal) modal.classList.add('open');
+        if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 50);
+        }
+    }
+
+    function closeAddClinicModal() {
+        const modal = document.getElementById('addClinicModalBackdrop');
+        if (modal) modal.classList.remove('open');
+    }
+
+    function handleClinicBackdropClick(event) {
+        if (event.target && event.target.id === 'addClinicModalBackdrop') {
+            closeAddClinicModal();
+        }
+    }
+
+    async function submitAddNewClinic(event) {
+        event.preventDefault();
+        const input = document.getElementById('newClinicNameInput');
+        const clinicName = (input?.value || '').trim();
+        if (!clinicName) return;
+
+        if (!currentSchedule || typeof currentSchedule !== 'object') {
+            currentSchedule = {};
+        }
+        if (Object.prototype.hasOwnProperty.call(currentSchedule, clinicName)) {
+            alert('هذه العيادة مسجلة بالفعل.');
+            return;
+        }
+
+        currentSchedule[clinicName] = {};
+        activeSpecialty = clinicName;
+        closeAddClinicModal();
+        renderSpecialties();
+        renderDoctorsForSpecialty();
+        await persistAndBroadcast(`تمت إضافة عيادة (${clinicName}) وتسميعها بنجاح!`);
+    }
+
+    function goTopAndHome() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+            window.location.href = 'home.html';
+        }, 220);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAddClinicModal();
+        }
+    });
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('liveClockBox').textContent = now.toLocaleTimeString('ar-EG', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+    }
+
+    const PORTAL_USERS_KEY = 'ibn_sina_portal_users_v1';
+    const PORTAL_SESSION_KEY = 'ibn_sina_portal_active_session_v1';
+    const DEFAULT_ADMIN_ACCOUNT = {
+        id: 'user_admin_default',
+        name: 'مدير النظام (الأدمن)',
+        username: 'admin',
+        password: '987',
+        role: 'admin',
+        permissions: ['bookings_count', 'schedule_manager', 'reception_booking']
+    };
+
+    function getPortalUsersCached() {
+        try {
+            const raw = localStorage.getItem(PORTAL_USERS_KEY);
+            const arr = raw ? JSON.parse(raw) : [];
+            const list = Array.isArray(arr) ? arr.filter(u => u && u.username) : [];
+            if (!list.some(u => u.username.toLowerCase() === 'admin')) {
+                list.unshift(DEFAULT_ADMIN_ACCOUNT);
+            }
+            return list;
+        } catch (e) {
+            return [DEFAULT_ADMIN_ACCOUNT];
+        }
+    }
+
+    async function refreshPortalUsersFromDb() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('clinic_settings')
+                .select('apologies_json')
+                .eq('id', SETTINGS_DOC_ID)
+                .maybeSingle();
+
+            if (!error && data && data.apologies_json && Array.isArray(data.apologies_json.__portal_users)) {
+                const list = data.apologies_json.__portal_users.filter(u => u && u.username);
+                if (!list.some(u => u.username.toLowerCase() === 'admin')) {
+                    list.unshift(DEFAULT_ADMIN_ACCOUNT);
+                }
+                localStorage.setItem(PORTAL_USERS_KEY, JSON.stringify(list));
+                return list;
+            }
+        } catch (e) {}
+        return getPortalUsersCached();
+    }
+
+    function getCurrentPortalUser() {
+        try {
+            const raw = sessionStorage.getItem(PORTAL_SESSION_KEY);
+            if (!raw) return null;
+            const sess = JSON.parse(raw);
+            const users = getPortalUsersCached();
+            return users.find(u => u.id === sess.id || u.username === sess.username) || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function userHasPagePermission(user, permKey) {
+        if (!user) return false;
+        if (user.role === 'admin') return true;
+        return Array.isArray(user.permissions) && user.permissions.includes(permKey);
+    }
+
+    function applyPageGuardUI(requiredPermKey) {
+        const user = getCurrentPortalUser();
+        const allowed = userHasPagePermission(user, requiredPermKey);
+
+        const overlay = document.getElementById('authOverlay');
+        const dashboard = document.getElementById('mainDashboard') || document.querySelector('.container');
+        const deniedBox = document.getElementById('accessDeniedBox');
+        const deniedMsg = document.getElementById('accessDeniedMsg');
+
+        if (!user) {
+            if (overlay) overlay.style.display = 'flex';
+            if (dashboard) dashboard.style.display = 'none';
+            if (deniedBox) deniedBox.style.display = 'none';
+            return { authenticated: false, allowed: false, user: null };
+        }
+
+        if (!allowed) {
+            if (overlay) overlay.style.display = 'none';
+            if (dashboard) dashboard.style.display = 'none';
+            if (deniedBox) deniedBox.style.display = 'flex';
+            if (deniedMsg) {
+                deniedMsg.textContent = `الحساب (${user.name} - ${user.username}) لا يملك صلاحية الوصول إلى هذه الصفحة.`;
+            }
+            return { authenticated: true, allowed: false, user };
+        }
+
+        if (overlay) overlay.style.display = 'none';
+        if (dashboard) dashboard.style.display = 'block';
+        if (deniedBox) deniedBox.style.display = 'none';
+
+        return { authenticated: true, allowed: true, user };
+    }
+
+    async function handleLoginSubmit(event, requiredPermKey) {
+        event.preventDefault();
+        const u = (document.getElementById('loginUsername')?.value || '').trim();
+        const p = (document.getElementById('loginPassword')?.value || '').trim();
+        const errEl = document.getElementById('authError');
+
+        await refreshPortalUsersFromDb();
+        const users = getPortalUsersCached();
+        const matched = users.find(item =>
+            item.username.toLowerCase() === u.toLowerCase() &&
+            String(item.password) === p
+        );
+
+        if (!matched) {
+            if (errEl) {
+                errEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+
+        if (!userHasPagePermission(matched, requiredPermKey)) {
+            if (errEl) {
+                errEl.textContent = 'هذا الحساب غير مصرح له بالدخول إلى هذه الصفحة';
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+
+        sessionStorage.setItem(PORTAL_SESSION_KEY, JSON.stringify({
+            id: matched.id,
+            username: matched.username
+        }));
+        if (errEl) errEl.style.display = 'none';
+        applyPageGuardUI(requiredPermKey);
+        renderSpecialties();
+        renderDoctorsForSpecialty();
+        await syncInitialFromSupabase();
+    }
+
+    function logoutAuth(requiredPermKey) {
+        sessionStorage.removeItem(PORTAL_SESSION_KEY);
+        const pInput = document.getElementById('loginPassword');
+        if (pInput) pInput.value = '';
+        applyPageGuardUI(requiredPermKey);
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+    (async function initScheduleManagerGuard() {
+        await refreshPortalUsersFromDb();
+        const state = applyPageGuardUI('schedule_manager');
+        if (state.authenticated && state.allowed) {
+            renderSpecialties();
+            renderDoctorsForSpecialty();
+            await syncInitialFromSupabase();
+        }
+    })();
+</script>
+
+</body>
+</html>

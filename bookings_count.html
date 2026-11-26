@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متابعة وتعديل حدود الحجوزات والمتبقي - عيادات مستشفى ابن سينا التخصصية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-red: #E30613;
+            --dark-red: #B8000B;
+            --primary-black: #111111;
+            --bg-light: #F4F5F7;
+            --border-color: #DCDFE4;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-black);
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 18px;
+            border-bottom: 2px solid #F0F0F0;
+            margin-bottom: 22px;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-box img {
+            height: 58px;
+            width: auto;
+        }
+
+        .brand-title h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .brand-title span {
+            display: inline-block;
+            background: #FFF0F1;
+            color: var(--primary-red);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 15px;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .live-pill {
+            background: #FFF0F1;
+            color: var(--primary-red);
+            font-size: 0.82rem;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .btn-الرجوع {
+            background: #FFF0F1;
+            color: var(--primary-red);
+            border: 1.5px solid rgba(227, 6, 19, 0.25);
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-home:hover {
+            background: var(--primary-red);
+            color: #ffffff;
+            border-color: var(--primary-red);
+        }
+
+        .btn-home svg {
+            width: 17px;
+            height: 17px;
+            fill: currentColor;
+        }
+
+        .btn-refresh {
+            background: var(--primary-black);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-refresh:hover {
+            background: #333;
+        }
+
+        .toast-banner {
+            display: none;
+            background: #EDFDF3;
+            color: #136F3A;
+            border: 1.5px solid #28A745;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: #FAFAFA;
+            border: 1.5px solid #EAECEF;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            margin: 0;
+            font-size: 0.92rem;
+            color: #666;
+            font-weight: 700;
+        }
+
+        .summary-card .num {
+            font-size: 1.9rem;
+            font-weight: 800;
+            margin-top: 6px;
+            color: var(--primary-black);
+        }
+
+        .summary-card.booked .num { color: var(--primary-red); }
+        .summary-card.remaining .num { color: #16A34A; }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin: 0 0 14px 0;
+            color: var(--primary-black);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #E2E5EA;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            min-width: 720px;
+        }
+
+        th {
+            background-color: var(--primary-black);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 12px 12px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #EAECEF;
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) {
+            background-color: #FAFAFA;
+        }
+
+        .pill-count {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.88rem;
+        }
+
+        .pill-booked {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .pill-remaining {
+            background: #DCFCE7;
+            color: #166534;
+        }
+
+        .pill-locked {
+            background: #FEE2E2;
+            color: #E30613;
+        }
+
+        .pill-open {
+            background: #E0E7FF;
+            color: #1E40AF;
+        }
+
+        .pill-apology {
+            background: #FFE4E6;
+            color: #9F1239;
+        }
+
+        .footer-credit {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #E0E0E0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .footer-credit a {
+            color: var(--primary-black);
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-credit img {
+            height: 22px;
+            vertical-align: middle;
+        }
+    
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 17, 17, 0.78);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9999;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 410px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+            border-top: 6px solid var(--primary-red);
+            border-bottom: 4px solid var(--primary-black);
+            text-align: center;
+        }
+        .auth-card img { height: 54px; width: auto; margin-bottom: 10px; }
+        .auth-card h2 { margin: 0 0 6px 0; font-size: 1.2rem; font-weight: 800; color: var(--primary-black); }
+        .auth-card p { margin: 0 0 18px 0; font-size: 0.86rem; color: #666; font-weight: 600; }
+        .auth-field { text-align: right; margin-bottom: 14px; }
+        .auth-field label { display: block; font-size: 0.86rem; font-weight: 800; margin-bottom: 6px; color: var(--primary-black); }
+        .auth-field input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 0.94rem; font-weight: 700; outline: none; }
+        .auth-field input:focus { border-color: var(--primary-red); }
+        .auth-error { display: none; background: #FEE2E2; color: var(--primary-red); font-size: 0.84rem; font-weight: 800; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
+        .btn-login { width: 100%; background: var(--primary-red); color: #ffffff; border: none; padding: 11px 16px; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+        .btn-logout { background: #F3F4F6; color: var(--primary-black); border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+
+<div class="auth-overlay" id="authOverlay" style="display:none;">
+    <form class="auth-card" onsubmit="handleLoginSubmit(event, 'bookings_count')">
+        <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+        <h2>تسجيل الدخول لمتابعة الحجوزات</h2>
+        <p>أدخل اسم المستخدم وكلمة المرور للوصول إلى الصفحة</p>
+        <div class="auth-field">
+            <label for="loginUsername">اسم المستخدم</label>
+            <input type="text" id="loginUsername" autocomplete="username" required>
+        </div>
+        <div class="auth-field">
+            <label for="loginPassword">كلمة المرور</label>
+            <input type="password" id="loginPassword" autocomplete="current-password" required>
+        </div>
+        <div class="auth-error" id="authError">اسم المستخدم أو كلمة المرور غير صحيحة</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" class="btn-login" style="flex:1;">دخول</button>
+            <a href="index.html" class="btn-home" style="justify-content:center;" title="الرجوع إلى الرئيسية">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.172 2.293 12.88a1 1 0 1 0 1.414 1.414L5 13.001V20a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h2v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6.999l1.293 1.293a1 1 0 0 0 1.414-1.414L12 3.172z"/></svg>
+                <span>Home</span>
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="auth-overlay" id="accessDeniedBox" style="display:none;">
+    <div class="auth-card">
+        <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+        <h2>غير مصرح بالوصول</h2>
+        <p id="accessDeniedMsg">هذا الحساب لا يملك صلاحية فتح هذه الصفحة.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <a href="index.html" class="btn-login" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; width:auto;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 3.172 2.293 12.88a1 1 0 1 0 1.414 1.414L5 13.001V20a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h2v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6.999l1.293 1.293a1 1 0 0 0 1.414-1.414L12 3.172z"/></svg>
+                <span>العودة لبوابة الدخول</span>
+            </a>
+            <button type="button" class="btn-logout" onclick="logoutAuth('bookings_count')">تبديل الحساب</button>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="mainDashboard" style="display:none;">
+    <div class="header-bar">
+        <div class="brand-box">
+            <img src="logo.png" alt="عيادات مستشفى ابن سينا التخصصية">
+            <div class="brand-title">
+                <h1>متابعة حدود الحجوزات والمتبقي</h1>
+                <span id="todayHeaderBadge">عيادات مستشفى ابن سينا التخصصية - جاري التحميل...</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <span class="live-pill" id="liveBadge">جاري الربط اللحظي...</span>
+            <a href="home.html" class="btn-الرجوع" title="الرجوع إلى الصفحة الرئيسية">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.172 2.293 12.88a1 1 0 1 0 1.414 1.414L5 13.001V20a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h2v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6.999l1.293 1.293a1 1 0 0 0 1.414-1.414L12 3.172z"/></svg>
+                <span>الرجوع</span>
+            </a>
+            <button type="button" class="btn-refresh" onclick="syncAndReload()">تحديث الآن</button>
+            <button type="button" class="btn-logout" onclick="logoutAuth('bookings_count')">خروج</button>
+        </div>
+    </div>
+
+    <div id="saveToast" class="toast-banner">تم تحديث الحدود والمتبقي فوراً!</div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <h3>إجمالي الحجوزات الفعالة اليوم</h3>
+            <div class="num" id="totalTodayBookings">0</div>
+        </div>
+        <div class="summary-card booked">
+            <h3>حجوزات المواعيد المحددة</h3>
+            <div class="num" id="limitedSlotsBooked">0</div>
+        </div>
+        <div class="summary-card remaining">
+            <h3>المتبقي في المواعيد المحددة اليوم</h3>
+            <div class="num" id="limitedSlotsRemaining">0</div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <span>الحجوزات المحددة (متزامن لحظياً مع لوحة إدارة الأطباء والمواعيد)</span>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>العيادة</th>
+                    <th>الطبيب</th>
+                    <th>الموعد</th>
+                    <th>الحد المحدد</th>
+                    <th>عدد المحجوز</th>
+                    <th>المتبقي</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody id="limitedSlotsBody">
+                <tr><td colspan="7" style="text-align:center; padding: 20px;">جاري تحميل البيانات...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">
+        <span>جميع أطباء ومواعيد اليوم (متزامن لحظياً مع لوحة إدارة الأطباء والاعتذارات)</span>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>العيادة</th>
+                    <th>الطبيب</th>
+                    <th>الموعد</th>
+                    <th>عدد الحجوزات المسجلة</th>
+                    <th>المتبقي</th>
+                </tr>
+            </thead>
+            <tbody id="allDoctorsBody">
+                <tr><td colspan="5" style="text-align:center; padding: 20px;">جاري تحميل البيانات...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-credit">
+        <a href="https://megacraphic.cloud" target="_blank">
+            <img src="100.png" alt="Mega Graphic">
+            <span>تصميم وتطوير ميجا جيرافيك | 01010255123</span>
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = 'https://xktnvqeelonlhhoemvdo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_fT5XWLhr9lsJ5v85PJSGuA_hA4eXR8b';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const STORAGE_SCHEDULE_KEY = 'ibn_sina_custom_clinics_schedule';
+    const STORAGE_LIMITS_KEY = 'ibn_sina_custom_doctor_limits';
+    const STORAGE_APOLOGIES_KEY = 'ibn_sina_doctor_apologies';
+
+    const DEFAULT_DOCTOR_LIMITS = {
+        "د/ خالد السحار": 5,
+        "د/ ماريا": 5
+    };
+
+    const DEFAULT_CLINICS_SCHEDULE = {
+        "عيادة الباطنة": {
+            "د/ خالد السحار": {
+                "السبت": ["9:30 مساءً"],
+                "الأحد": ["9:30 مساءً"],
+                "الاثنين": ["2:30 ظهراً", "9:30 مساءً"],
+                "الثلاثاء": ["2:30 ظهراً", "9:30 مساءً"],
+                "الأربعاء": ["2:30 ظهراً", "9:30 مساءً"],
+                "الخميس": ["3:00 عصراً", "9:30 مساءً"]
+            },
+            "د/ ماريا": {
+                "السبت": ["9:30 صباحاً"],
+                "الثلاثاء": ["9:30 صباحاً"],
+                "الأربعاء": ["9:30 صباحاً"],
+                "الخميس": ["9:30 صباحاً"]
+            },
+            "د/ أمجد صبحي": {
+                "الأربعاء": ["1:30 ظهراً"],
+                "الخميس": ["1:30 ظهراً"]
+            },
+            "د/ صبحي صديق": {
+                "السبت": ["11:00 صباحاً"],
+                "الأربعاء": ["12:00 ظهراً"]
+            },
+            "د/ رضا المنسي": {
+                "الأحد": ["4:00 عصراً"],
+                "الأربعاء": ["4:00 عصراً"]
+            },
+            "د/ أحمد عبد الفتاح": {
+                "الأحد": ["7:00 مساءً"],
+                "الثلاثاء": ["7:00 مساءً"]
+            },
+            "د/ عبد النبي السيد": {
+                "الاثنين": ["9:30 صباحاً"]
+            }
+        },
+        "عيادة الباطنة والكلى": {
+            "د/ محمد سلامة": {
+                "السبت": ["2:30 مساءً"],
+                "الاثنين": ["2:30 مساءً"]
+            },
+            "د/ آيات نصر": {
+                "الاثنين": ["2:00 مساءً"],
+                "الخميس": ["4:00 مساءً"]
+            },
+            "د/ لطفي أبو العنين": {
+                "الأربعاء": ["10:00 صباحاً"]
+            },
+            "د/ محمد الهجرسي": {
+                "السبت": ["3:00 مساءً"],
+                "الأربعاء": ["9:00 مساءً"]
+            }
+        },
+        "عيادة الجهاز الهضمي والباطنة": {
+            "د/ رفقه محسن": {
+                "الأحد": ["10:00 صباحاً"],
+                "الاثنين": ["11:00 صباحاً"]
+            },
+            "د/ شريف سويلم": {
+                "السبت": ["5:00 مساءً"],
+                "الأحد": ["12:00 ظهراً", "5:00 مساءً"],
+                "الاثنين": ["5:30 مساءً"],
+                "الثلاثاء": ["1:30 ظهراً", "5:00 مساءً"],
+                "الأربعاء": ["5:00 مساءً"],
+                "الخميس": ["11:00 صباحاً", "5:00 مساءً"]
+            },
+            "د/ أحمد فؤاد": {
+                "الأحد": ["7:00 مساءً"],
+                "الثلاثاء": ["6:00 مساءً"],
+                "الخميس": ["5:30 مساءً"],
+                "الجمعة": ["1:00 ظهراً"]
+            },
+            "د/ وئام إبراهيم": {
+                "الخميس": ["10:00 صباحاً"]
+            }
+        },
+        "عيادة العظام": {
+            "د/ محمد رخا": {
+                "الأحد": ["1:00 ظهراً"]
+            },
+            "د/ كريم خطاب": {
+                "الثلاثاء": ["9:30 صباحاً"],
+                "الخميس": ["9:30 صباحاً"]
+            },
+            "د/ محمد عفيفي": {
+                "الأحد": ["3:00 عصراً"]
+            },
+            "د/ أحمد خطاب": {
+                "السبت": ["1:00 ظهراً"],
+                "الثلاثاء": ["12:00 ظهراً"],
+                "الأربعاء": ["12:00 ظهراً"]
+            },
+            "د/ عمر علي": {
+                "الاثنين": ["4:00 عصراً"]
+            },
+            "د/ عمرو الدرس": {
+                "السبت": ["9:30 مساءً"],
+                "الثلاثاء": ["8:30 مساءً"],
+                "الأربعاء": ["11:00 صباحاً"]
+            },
+            "د/ محمد فتحي درويش": {
+                "السبت": ["8:00 مساءً"],
+                "الاثنين": ["3:00 عصراً"]
+            },
+            "د/ محمود الخولي": {
+                "الأحد": ["9:30 مساءً"]
+            },
+            "د/ أحمد عبد الغني صبرة": {
+                "الاثنين": ["10:00 صباحاً"]
+            },
+            "د/ محمد عبد الغفار": {
+                "السبت": ["11:00 صباحاً", "3:00 عصراً"],
+                "الاثنين": ["11:00 صباحاً"],
+                "الثلاثاء": ["3:00 عصراً"],
+                "الأربعاء": ["3:00 عصراً"],
+                "الخميس": ["11:00 صباحاً", "3:00 عصراً"],
+                "الجمعة": ["1:30 ظهراً"]
+            },
+            "د/ محمد رأفت": {
+                "الأربعاء": ["6:00 مساءً"],
+                "الخميس": ["6:00 مساءً"]
+            },
+            "د/ أحمد عبد السلام": {
+                "الأحد": ["5:00 مساءً"],
+                "الأربعاء": ["9:00 مساءً"]
+            },
+            "د/ ياسين الغول": {
+                "الأحد": ["9:30 صباحاً"],
+                "الاثنين": ["8:00 مساءً"],
+                "الخميس": ["8:00 مساءً"]
+            }
+        }
+    };
+
+    function getActiveSchedule() {
+        try {
+            const raw = localStorage.getItem(STORAGE_SCHEDULE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+                    return parsed;
+                }
+            }
+        } catch (e) {}
+        return DEFAULT_CLINICS_SCHEDULE;
+    }
+
+    function getCustomLimits() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_LIMITS_KEY) || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function isDoctorApologizedForDay(clinicName, docName, dayName) {
+        try {
+            const apologies = JSON.parse(localStorage.getItem(STORAGE_APOLOGIES_KEY) || '{}');
+            return Boolean(
+                apologies[`${clinicName}__${docName}__${dayName}`] ||
+                apologies[`${clinicName}__${docName}`]
+            );
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function syncSettingsFromSupabase() {
+        try {
+            const { data } = await supabaseClient
+                .from('clinic_settings')
+                .select('schedule_json, limits_json, apologies_json')
+                .eq('id', 'main_schedule_config')
+                .maybeSingle();
+
+            if (data && data.schedule_json) {
+                localStorage.setItem(STORAGE_SCHEDULE_KEY, JSON.stringify(data.schedule_json));
+                localStorage.setItem(STORAGE_LIMITS_KEY, JSON.stringify(data.limits_json || {}));
+                localStorage.setItem(STORAGE_APOLOGIES_KEY, JSON.stringify(data.apologies_json || {}));
+            }
+        } catch (e) {}
+    }
+
+    function getDoctorLimit(docName, clinicName = '', dayName = '') {
+        const custom = getCustomLimits();
+        if (clinicName && dayName) {
+            const fullDayKey = `${clinicName}__${docName}__${dayName}`;
+            if (Object.prototype.hasOwnProperty.call(custom, fullDayKey)) {
+                const dVal = Number(custom[fullDayKey]);
+                if (dVal > 0) return dVal;
+            }
+            const docDayKey = `${docName}__${dayName}`;
+            if (Object.prototype.hasOwnProperty.call(custom, docDayKey)) {
+                const dVal2 = Number(custom[docDayKey]);
+                if (dVal2 > 0) return dVal2;
+            }
+        }
+        if (Object.prototype.hasOwnProperty.call(custom, docName)) {
+            const val = Number(custom[docName]);
+            return val > 0 ? val : null;
+        }
+        return DEFAULT_DOCTOR_LIMITS[docName] ?? null;
+    }
+
+    function showToast(msg) {
+        const el = document.getElementById('saveToast');
+        if (!el) return;
+        el.textContent = msg;
+        el.style.display = 'block';
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 2800);
+    }
+
+    const arabicDaysMap = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    function getTodayArabicName() {
+        return arabicDaysMap[new Date().getDay()];
+    }
+
+    async function syncAndReload() {
+        await syncSettingsFromSupabase();
+        await loadCounts();
+    }
+
+    async function loadCounts() {
+        const todayName = getTodayArabicName();
+        const dateText = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('todayHeaderBadge').textContent = `عيادات مستشفى ابن سينا التخصصية - ${todayName} (${dateText})`;
+
+        const clinicsSchedule = getActiveSchedule();
+
+        const { data, error } = await supabaseClient
+            .from('clinic_bookings')
+            .select('clinic, doctor_name, appointment_time, status')
+            .eq('appointment_day', todayName);
+
+        if (error) {
+            document.getElementById('limitedSlotsBody').innerHTML = `<tr><td colspan="7" style="text-align:center; color:#E30613;">خطأ في تحميل البيانات: ${error.message}</td></tr>`;
+            return;
+        }
+
+        const activeBookings = (data || []).filter(r => r.status !== 'ملغي');
+        const countsMap = {};
+        activeBookings.forEach(r => {
+            const key = `${r.clinic || ''}__${r.doctor_name || ''}__${r.appointment_time || ''}`;
+            countsMap[key] = (countsMap[key] || 0) + 1;
+        });
+
+        let totalBookedAll = activeBookings.length;
+        let totalLimitedBooked = 0;
+        let totalLimitedRemaining = 0;
+
+        const limitedRows = [];
+        const allTodayRows = [];
+
+        Object.keys(clinicsSchedule).forEach(clinicName => {
+            const doctors = clinicsSchedule[clinicName] || {};
+            Object.keys(doctors).forEach(docName => {
+                const slots = Array.isArray(doctors[docName][todayName]) ? doctors[docName][todayName] : [];
+                const limit = getDoctorLimit(docName, clinicName, todayName);
+                const apologizedToday = isDoctorApologizedForDay(clinicName, docName, todayName);
+
+                slots.forEach(slot => {
+                    const key = `${clinicName}__${docName}__${slot}`;
+                    const booked = countsMap[key] || 0;
+
+                    if (limit !== null && Number(limit) > 0) {
+                        const remaining = apologizedToday ? 0 : Math.max(0, Number(limit) - booked);
+                        totalLimitedBooked += booked;
+                        totalLimitedRemaining += remaining;
+                        limitedRows.push({
+                            clinicName,
+                            docName,
+                            slot,
+                            limit: Number(limit),
+                            booked,
+                            remaining,
+                            apologizedToday
+                        });
+                    }
+
+                    allTodayRows.push({
+                        clinicName,
+                        docName,
+                        slot,
+                        limit,
+                        booked,
+                        apologizedToday
+                    });
+                });
+            });
+        });
+
+        document.getElementById('totalTodayBookings').textContent = totalBookedAll;
+        document.getElementById('limitedSlotsBooked').textContent = totalLimitedBooked;
+        document.getElementById('limitedSlotsRemaining').textContent = totalLimitedRemaining;
+
+        const limitedBody = document.getElementById('limitedSlotsBody');
+        if (limitedRows.length === 0) {
+            limitedBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 18px;">لا توجد حجوزات محددة اليوم (${todayName})</td></tr>`;
+        } else {
+            limitedBody.innerHTML = limitedRows.map(item => {
+                const isClosed = item.apologizedToday || item.remaining === 0;
+                const statusLabel = item.apologizedToday
+                    ? '🚫 معتذر اليوم'
+                    : (item.remaining === 0 ? '🔒 قفل الحجز' : 'متاح للحجز');
+                const statusClass = item.apologizedToday
+                    ? 'pill-apology'
+                    : (item.remaining === 0 ? 'pill-locked' : 'pill-open');
+                return `
+                    <tr>
+                        <td>${item.clinicName}</td>
+                        <td><strong>${item.docName}</strong></td>
+                        <td><strong>${item.slot}</strong></td>
+                        <td><span class="pill-count pill-open">${item.limit}</span></td>
+                        <td><span class="pill-count pill-booked">${item.booked}</span></td>
+                        <td><span class="pill-count ${isClosed ? 'pill-locked' : 'pill-remaining'}">${item.remaining}</span></td>
+                        <td><span class="pill-count ${statusClass}">${statusLabel}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        const allBody = document.getElementById('allDoctorsBody');
+        if (allTodayRows.length === 0) {
+            allBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 18px;">لا توجد عيادات مجدولة اليوم (${todayName})</td></tr>`;
+        } else {
+            allBody.innerHTML = allTodayRows.map(item => {
+                let remText = item.apologizedToday ? '🚫 معتذر اليوم' : 'مفتوح (بدون حد)';
+                let remClass = item.apologizedToday ? 'pill-apology' : 'pill-open';
+                if (item.limit !== null && Number(item.limit) > 0) {
+                    const rem = item.apologizedToday ? 0 : Math.max(0, Number(item.limit) - item.booked);
+                    remText = item.apologizedToday ? '🚫 معتذر (0)' : (rem === 0 ? '0 (مغلق)' : `${rem} من ${item.limit}`);
+                    remClass = (item.apologizedToday || rem === 0) ? 'pill-locked' : 'pill-remaining';
+                }
+                return `
+                    <tr>
+                        <td>${item.clinicName}</td>
+                        <td><strong>${item.docName}</strong></td>
+                        <td>${item.slot}</td>
+                        <td><span class="pill-count pill-booked">${item.booked}</span></td>
+                        <td><span class="pill-count ${remClass}">${remText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    }
+
+    window.addEventListener('storage', function(event) {
+        if (
+            event.key === STORAGE_SCHEDULE_KEY ||
+            event.key === STORAGE_LIMITS_KEY ||
+            event.key === STORAGE_APOLOGIES_KEY
+        ) {
+            loadCounts();
+            showToast('تم استلام تحديث من لوحة إدارة الأطباء والمواعيد!');
+        }
+    });
+
+    supabaseClient
+        .channel('ibn_sina_schedule_sync')
+        .on('broadcast', { event: 'schedule_updated' }, (payload) => {
+            if (payload?.payload?.schedule) {
+                localStorage.setItem(STORAGE_SCHEDULE_KEY, JSON.stringify(payload.payload.schedule));
+                localStorage.setItem(STORAGE_LIMITS_KEY, JSON.stringify(payload.payload.limits || {}));
+                localStorage.setItem(STORAGE_APOLOGIES_KEY, JSON.stringify(payload.payload.apologies || {}));
+            }
+            loadCounts();
+            showToast('تم استلام تحديث لحظي من لوحة إدارة الأطباء والمواعيد!');
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_settings' }, () => {
+            syncAndReload();
+            showToast('تم تحديث الجدول والحدود تلقائياً من قاعدة البيانات!');
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_bookings' }, () => {
+            loadCounts();
+        })
+        .subscribe((status) => {
+            const badge = document.getElementById('liveBadge');
+            if (status === 'SUBSCRIBED') {
+                badge.textContent = ' متصل';
+                badge.style.background = '#DCFCE7';
+                badge.style.color = '#166534';
+            } else {
+                badge.textContent = 'تحديث يدوي / جاري الربط';
+                badge.style.background = '#FFF0F1';
+                badge.style.color = '#E30613';
+            }
+        });
+
+
+    const PORTAL_USERS_KEY = 'ibn_sina_portal_users_v1';
+    const PORTAL_SESSION_KEY = 'ibn_sina_portal_active_session_v1';
+    const SETTINGS_DOC_ID = 'main_schedule_config';
+
+    const DEFAULT_ADMIN_ACCOUNT = {
+        id: 'user_admin_default',
+        name: 'مدير النظام (الأدمن)',
+        username: 'admin',
+        password: '987',
+        role: 'admin',
+        permissions: ['bookings_count', 'schedule_manager', 'reception_booking']
+    };
+
+    function getPortalUsersCached() {
+        try {
+            const raw = localStorage.getItem(PORTAL_USERS_KEY);
+            const arr = raw ? JSON.parse(raw) : [];
+            const list = Array.isArray(arr) ? arr.filter(u => u && u.username) : [];
+            if (!list.some(u => u.username.toLowerCase() === 'admin')) {
+                list.unshift(DEFAULT_ADMIN_ACCOUNT);
+            }
+            return list;
+        } catch (e) {
+            return [DEFAULT_ADMIN_ACCOUNT];
+        }
+    }
+
+    async function refreshPortalUsersFromDb() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('clinic_settings')
+                .select('apologies_json')
+                .eq('id', SETTINGS_DOC_ID)
+                .maybeSingle();
+
+            if (!error && data && data.apologies_json && Array.isArray(data.apologies_json.__portal_users)) {
+                const list = data.apologies_json.__portal_users.filter(u => u && u.username);
+                if (!list.some(u => u.username.toLowerCase() === 'admin')) {
+                    list.unshift(DEFAULT_ADMIN_ACCOUNT);
+                }
+                localStorage.setItem(PORTAL_USERS_KEY, JSON.stringify(list));
+                return list;
+            }
+        } catch (e) {}
+        return getPortalUsersCached();
+    }
+
+    function getCurrentPortalUser() {
+        try {
+            const raw = sessionStorage.getItem(PORTAL_SESSION_KEY);
+            if (!raw) return null;
+            const sess = JSON.parse(raw);
+            const users = getPortalUsersCached();
+            return users.find(u => u.id === sess.id || u.username === sess.username) || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function userHasPagePermission(user, permKey) {
+        if (!user) return false;
+        if (user.role === 'admin') return true;
+        return Array.isArray(user.permissions) && user.permissions.includes(permKey);
+    }
+
+    function applyPageGuardUI(requiredPermKey) {
+        const user = getCurrentPortalUser();
+        const allowed = userHasPagePermission(user, requiredPermKey);
+
+        const overlay = document.getElementById('authOverlay');
+        const dashboard = document.getElementById('mainDashboard') || document.querySelector('.dashboard-container') || document.querySelector('.container');
+        const deniedBox = document.getElementById('accessDeniedBox');
+        const deniedMsg = document.getElementById('accessDeniedMsg');
+
+        if (!user) {
+            if (overlay) overlay.style.display = 'flex';
+            if (dashboard) dashboard.style.display = 'none';
+            if (deniedBox) deniedBox.style.display = 'none';
+            return { authenticated: false, allowed: false, user: null };
+        }
+
+        if (!allowed) {
+            if (overlay) overlay.style.display = 'none';
+            if (dashboard) dashboard.style.display = 'none';
+            if (deniedBox) deniedBox.style.display = 'flex';
+            if (deniedMsg) {
+                deniedMsg.textContent = `الحساب (${user.name} - ${user.username}) لا يملك صلاحية الوصول إلى هذه الصفحة.`;
+            }
+            return { authenticated: true, allowed: false, user };
+        }
+
+        if (overlay) overlay.style.display = 'none';
+        if (dashboard) dashboard.style.display = 'block';
+        if (deniedBox) deniedBox.style.display = 'none';
+
+        const staffInput = document.getElementById('staffName');
+        if (staffInput && !staffInput.value.trim()) {
+            staffInput.value = user.name || user.username;
+            if (typeof saveStaffName === 'function') saveStaffName();
+        }
+
+        return { authenticated: true, allowed: true, user };
+    }
+
+    async function handleLoginSubmit(event, requiredPermKey) {
+        event.preventDefault();
+        const u = (document.getElementById('loginUsername')?.value || '').trim();
+        const p = (document.getElementById('loginPassword')?.value || '').trim();
+        const errEl = document.getElementById('authError');
+
+        await refreshPortalUsersFromDb();
+        const users = getPortalUsersCached();
+        const matched = users.find(item =>
+            item.username.toLowerCase() === u.toLowerCase() &&
+            String(item.password) === p
+        );
+
+        if (!matched) {
+            if (errEl) {
+                errEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+
+        if (!userHasPagePermission(matched, requiredPermKey)) {
+            if (errEl) {
+                errEl.textContent = 'هذا الحساب غير مصرح له بالدخول إلى هذه الصفحة';
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+
+        sessionStorage.setItem(PORTAL_SESSION_KEY, JSON.stringify({
+            id: matched.id,
+            username: matched.username
+        }));
+        if (errEl) errEl.style.display = 'none';
+        applyPageGuardUI(requiredPermKey);
+        if (typeof syncSettingsFromSupabase === 'function' && typeof loadCounts === 'function') {
+            await syncSettingsFromSupabase();
+            await loadCounts();
+        } else if (typeof fetchBookings === 'function') {
+            await fetchBookings(false);
+        }
+    }
+
+    function logoutAuth(requiredPermKey) {
+        sessionStorage.removeItem(PORTAL_SESSION_KEY);
+        const pInput = document.getElementById('loginPassword');
+        if (pInput) pInput.value = '';
+        applyPageGuardUI(requiredPermKey);
+    }
+
+    (async function init() {
+        await refreshPortalUsersFromDb();
+        const state = applyPageGuardUI('bookings_count');
+        if (state.authenticated && state.allowed) {
+            await syncSettingsFromSupabase();
+            await loadCounts();
+        }
+    })();
+</script>
+
+</body>
+</html>
